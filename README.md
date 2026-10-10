@@ -1,6 +1,6 @@
-# Tabela Periódica Interativa
+# Elementar
 
-Tabela periódica em tela cheia com efeito *glassmorphism*, zoom cinematográfico e fichas detalhadas de todos os 118 elementos, em português.
+Tabela periódica, laboratório de simulações e ferramentas de estudo passo a passo para química, física, matemática e pesquisa, em português. Feito para quem está no ensino médio, na faculdade ou estuda sozinho: cada resultado mostra a conta inteira, para você conferir e aprender o caminho.
 
 ## Como abrir
 
@@ -11,57 +11,78 @@ python3 -m http.server 8000
 # depois acesse http://localhost:8000
 ```
 
-Dá para abrir direto um elemento pelo endereço: `index.html#Fe`, `index.html#79`.
+Endereços diretos: `#Fe` ou `#79` (elemento), `#lab/atomo` (laboratório), `#estudo/fisica` (estudo). Na primeira visita aparece o guia **Como usar**, que sempre pode ser reaberto pelo botão ou pela tecla `?`.
 
-## O que tem
+## Identidade visual
 
-- **Vidro em cada célula**: desfoque do fundo, reflexo, brilho que segue o cursor (com a cor da categoria) e inclinação 3D ao passar o mouse.
-- **Zoom cinematográfico**: ao clicar, a câmera avança sobre a tabela, surgem as faixas de cinema, as estrelas passam em velocidade de dobra e o elemento voa até o primeiro plano com um clarão de luz.
-- **Ficha do elemento**, na ordem em que se lê melhor:
-  - tags rápidas (estado, metal ou não, grupo, período, bloco, radioativo/sintético) e um mapa com a posição dele na tabela;
-  - propriedades com contagem animada;
-  - **gráfico comparativo**: eletronegatividade, raio, ionização, densidade ou fusão ao longo de toda a tabela, com o elemento em destaque e a posição no ranking;
-  - **simulador de temperatura**: arraste e veja o elemento virar sólido, líquido ou gás, com as partículas se movendo;
-  - configuração eletrônica, onde é encontrado e como é obtido, para que serve, descoberta, origem do nome e curiosidade.
-- **Modelo atômico animado** com os elétrons nas camadas reais, e contagem de prótons, elétrons e nêutrons.
-- **Navegação** com ← →, botões ou deslizando o dedo; `R` ou "Surpreenda-me" abre um elemento aleatório; o botão de link copia/compartilha o endereço do elemento.
-- **Modos de visualização**: categoria, estado físico (temperatura de 0 a 6000 K), eletronegatividade, raio atômico e linha do tempo das descobertas.
-- **Busca** por nome, símbolo ou número (atalho `/`, `Enter` abre o melhor resultado).
+A interface segue a ideia de um **caderno de laboratório**: fundo quadriculado discreto, superfícies sólidas com linhas finas, cor só onde ela informa (categoria do elemento, matéria do estudo, estado de um núcleo) e números em fonte monoespaçada, como no visor de um instrumento. Não há brilhos decorativos, desfoques ou partículas de enfeite.
 
-### No celular
+| Elemento | Escolha |
+| --- | --- |
+| Marca | Ladrilho amarelo “El” (como uma célula da tabela) + nome **Elementar** |
+| Tipografia | IBM Plex Sans (texto) e IBM Plex Mono (números, equações, entradas) |
+| Fundo e superfícies | Grafite `#0f1318`, painéis `#161b22`, linhas `#2b3441` |
+| Cor de ação | Amarelo `#f2c14e` (Estudo, foco do teclado) |
+| Cores por matéria | Química verde, Física azul, Matemática âmbar, Pesquisa rosa |
+| Categorias da tabela | Paleta sóbria de 11 cores, usada como faixa no topo de cada célula |
 
-- Em pé, a tabela inteira cabe na tela. **Pince para ampliar e arraste para mover** (ou use os botões + − ⤢); quanto mais você amplia, mais informação aparece em cada célula.
-- Há um cartão de **elemento do dia** abaixo da tabela.
-- Deitado, a tabela ocupa a tela toda.
-- Sem desfoque pesado nas células e sem efeito de hover, para ficar leve em aparelhos mais fracos. A ficha respeita as áreas seguras (notch e barra inferior).
-- Respeita a preferência do sistema por movimento reduzido.
+Os tokens ficam em `:root` no `style.css`; os componentes do laboratório e do estudo usam só essas variáveis.
+
+## Tabela
+
+- **Ficha do elemento**: tags rápidas e mapa de posição, propriedades, gráfico comparativo com toda a tabela, simulador de temperatura (sólido, líquido, gás), configuração eletrônica, onde é encontrado, como é obtido, usos, descoberta e curiosidades.
+- **Zoom cinematográfico**: a câmera avança sobre a tabela e o elemento vem para o primeiro plano, com o modelo atômico (elétrons nas camadas reais).
+- **Modos**: categoria, estado físico (0 a 6000 K), eletronegatividade, raio atômico e linha do tempo das descobertas.
+- **Busca** por nome, símbolo ou número (`/`), elemento aleatório (`R`), navegação com ← →.
+- **No celular**: pince para ampliar (quanto mais perto, mais informação em cada célula), cartão de elemento do dia e atalhos para Estudo e Laboratório.
+
+## Estudo
+
+Botão **Estudo** (tecla `E`). Todas as ferramentas seguem o mesmo padrão:
+
+- **Entenda a teoria**: o conceito em linguagem simples, as fórmulas e os erros comuns.
+- **Resolver**: você digita o que o problema dá e recebe a resposta e o **passo a passo** (com botão Copiar). No modo **guiado** os passos aparecem um de cada vez, para tentar antes de ver.
+- **Praticar**: exercícios novos a cada clique, corrigidos pelo mesmo motor que resolve, com placar.
+
+Aceita `1,5`, `1e-3`, `1,5x10^-3` e `1/3`.
+
+| Matéria | Ferramentas |
+| --- | --- |
+| **Química** | Massa molar · mol e conversões · balanceamento (álgebra exata) · estequiometria (limitante e rendimento) · soluções e diluição · pH · gases ideais · distribuição eletrônica · **Nox e oxirredução** (agentes, elétrons, balanceamento em meio ácido/básico) · **equações iônicas** (precipitação, neutralização, íons espectadores) · **eletroquímica** (pilhas, Nernst, Faraday, tabela de E°) · **termoquímica** (ΔH por formação, Hess, ΔG, calorimetria, energias de ligação) · **equilíbrio** (K, Q × K, tabela ICE, Kc ↔ Kp, Kps, tampões) · **cinética** (leis integradas, ordem a partir de dados, velocidades iniciais, Arrhenius) |
+| **Física** | Resolvedor de fórmulas em 7 assuntos (escolhe a fórmula ou a cadeia de fórmulas, converte para o SI, isola, calcula e confere a dimensão) · circuitos série/paralelo · lançamento oblíquo com trajetória · conversor de unidades · formulário pesquisável |
+| **Matemática** | Equações do 1º e 2º grau (Bhaskara com gráfico) e sistemas 2×2/3×3 com frações exatas · regra de três simples e composta, porcentagem · potências, logaritmos e notação científica · trigonometria (círculo, triângulo retângulo, leis dos senos e cossenos) · vetores 2D/3D · derivadas e integrais simbólicas · gráficos de funções |
+| **Pesquisa** | Ajuste linear por mínimos quadrados (com incertezas, R², resíduos e linearizações) · propagação de incertezas (GUM) · algarismos significativos · estatística de medidas (t de Student, Chauvenet) · constantes CODATA 2018 · tabelas para relatório (CSV, LaTeX, Markdown) |
+
+**Confiabilidade.** Os resultados vêm de algoritmos, não de IA. Cada motor (`js/estudo/*-calc.js`) roda também em Node e é testado com valores de livro, ida e volta (isolar e substituir devolve o valor original), conferências numéricas (derivadas por diferenças finitas, integrais por Simpson) e centenas de exercícios gerados. Os limites de cada modelo (gases ideais, sem resistência do ar, integrais só com regras elementares etc.) estão escritos no próprio app.
 
 ## Laboratório
 
-Um espaço de experimentos de física, aberto pelo botão **Laboratório** (ou tecla `L`; `#lab/atomo` no endereço abre direto). Cada módulo tem um selo dizendo o que é fiel à física e o que é simplificado.
+Botão **Laboratório** (tecla `L`). Cada módulo tem um selo dizendo o que é fiel à física e o que é simplificado.
 
 | Módulo | O que dá para fazer |
 | --- | --- |
-| **Átomo** | Monte qualquer átomo arrastando prótons, nêutrons e elétrons. Veja estabilidade, meia-vida e energia de ligação, faça o núcleo decair (inclusive a cadeia completa do urânio-238 até o chumbo-206), divida o átomo (fissão) ou desmonte-o. Um mapa de núcleos mostra o vale da estabilidade e os números mágicos. |
-| **Decaimento** | Uma amostra de átomos com contador Geiger e a curva da meia-vida, com 14 isótopos reais (de 164 µs a bilhões de anos), atividade em Bq/g e calculadora de datação. Poucos átomos mostram as flutuações do acaso. |
-| **Reator** | Reação em cadeia de fissão: toque para disparar nêutrons, controle barras, moderador e combustível, acompanhe o fator k e provoque (ou evite) o superaquecimento. |
-| **Estrela** | A vida de estrelas de 0,3 a 25 massas solares: cada estágio de fusão, a lente de partículas no núcleo, a curva de energia de ligação (por que o ferro é o fim) e a supernova. |
-| **Acelerador** | Feixes de p, e⁻, e⁺, p̄ e Pb num anel de 27 km, com os números reais (γ, velocidade, campo dos ímãs, radiação síncrotron), um detector com trajetórias curvadas pelo campo magnético, o pico do Z⁰ e a descoberta do Higgs. |
+| **Átomo** | Monte qualquer átomo; veja estabilidade, meia-vida e energia de ligação; faça o núcleo decair (inclusive a série do urânio-238), divida o átomo ou desmonte-o; mapa de núcleos com o vale da estabilidade. |
+| **Decaimento** | Amostra com contador Geiger e curva da meia-vida, 14 isótopos reais, atividade e datação. |
+| **Reator** | Reação em cadeia: nêutrons, barras de controle, moderador, combustível, fator k e superaquecimento. |
+| **Estrela** | Vida de estrelas de 0,3 a 25 massas solares, estágios de fusão, curva de energia de ligação e supernova. |
+| **Acelerador** | Feixes num anel de 27 km com os números reais, detector com trajetórias no campo magnético, o pico do Z⁰ e o Higgs. |
 
-**O que é real e o que não é.** Energias de ligação, meias-vidas, séries radioativas, valores Q, fórmulas relativísticas, o raio de curvatura das trajetórias e a curva do Z⁰ são físicas reais. Os eventos de colisão são sorteados por um modelo educativo (não por um gerador de física completo), os dados do Higgs são sintéticos e geometrias como a do reator são simplificadas.
-
-**Desempenho.** Nada é criado dentro dos laços de animação: partículas viram sprites pré-renderizados, a resolução do canvas se adapta sozinha se os quadros atrasarem, a física usa passos limitados e só o módulo visível anima. O laboratório só é baixado quando alguém o abre.
+**Desempenho.** O laboratório e o estudo só são baixados quando alguém os abre; os laços de animação não criam objetos, a resolução do canvas se adapta e só o módulo visível anima.
 
 ## Arquivos
 
 | Arquivo | Conteúdo |
 | --- | --- |
-| `index.html` | Estrutura da página |
-| `style.css` | Visual, vidro e layout responsivo |
-| `js/app.js` | Tabela, modos, animações, modelo atômico e fundo |
+| `index.html` | Estrutura da página e guia “Como usar” |
+| `style.css` | Identidade visual (tokens) e layout responsivo |
+| `js/app.js` | Tabela, modos, ficha, modelo atômico, guia e carregamento sob demanda |
 | `js/dados.js` | Dados físicos dos elementos ([Periodic-Table-JSON](https://github.com/Bowserinator/Periodic-Table-JSON), CC BY-SA 3.0) |
 | `js/descricoes.js` | Textos em português de cada elemento |
-| `js/lab/fisica.js` | Motor de física nuclear (testável em Node) |
-| `js/lab/base.js` | Laço de animação, sprites, som e componentes do laboratório |
-| `js/lab/*.js` | Um arquivo por módulo e a casca (`lab.js`) |
-| `css/lab.css` | Estilos do laboratório |
+| `js/lab/*.js` | Motor nuclear (`fisica.js`), base de animação (`base.js`), módulos e casca (`lab.js`) |
+| `css/lab.css` | Componentes do laboratório e do estudo |
+| `js/estudo/base-estudo.js` | Componentes comuns do estudo: campos, passo a passo, prática e a casca de cada matéria |
+| `js/estudo/expressao.js` | Leitor e avaliador de expressões matemáticas (sem `eval`) |
+| `js/estudo/quimica-calc.js`, `quimica-redox-calc.js`, `quimica-termo-calc.js` | Motores de química |
+| `js/estudo/fisica-calc.js`, `matematica-calc.js`, `pesquisa-calc.js` | Motores de física, matemática e pesquisa |
+| `js/estudo/quimica*.js`, `fisica-estudo.js`, `matematica.js`, `pesquisa.js` | Interfaces de cada matéria |
+| `css/estudo-*.css` | Estilos específicos de algumas ferramentas |

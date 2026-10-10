@@ -1,0 +1,7 @@
+/* Química: termoquímica, equilíbrio e cinética */
+.est-sub { display: flex; flex-direction: column; gap: 12px; }
+.hess-lista { display: flex; flex-direction: column; gap: 10px; }
+.hess-linha { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: var(--radius-s, 8px); background: var(--panel, #161b22); border: 1px solid var(--stroke-soft); }
+.vi-linha { padding: 10px; border-radius: var(--radius-s, 8px); background: var(--panel, #161b22); border: 1px solid var(--stroke-soft); grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+.vi-n { grid-column: 1 / -1; }
+.vi-tab { display: flex; flex-direction: column; gap: 8px; }

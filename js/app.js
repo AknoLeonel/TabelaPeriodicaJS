@@ -5,27 +5,27 @@
   // Dados
   // ---------------------------------------------------------------------------
   const CATEGORIAS = {
-    alcalino: { nome: "Metais alcalinos", cor: "#ff4d6d" },
-    alcalinoterroso: { nome: "Metais alcalinoterrosos", cor: "#ff9e3d" },
-    transicao: { nome: "Metais de transição", cor: "#ffd23f" },
-    postransicao: { nome: "Outros metais", cor: "#9be15d" },
-    semimetal: { nome: "Semimetais", cor: "#2ee6b6" },
-    naometal: { nome: "Não metais", cor: "#38b6ff" },
-    halogenio: { nome: "Halogênios", cor: "#6f7bff" },
-    nobre: { nome: "Gases nobres", cor: "#a46bff" },
-    lantanideo: { nome: "Lantanídeos", cor: "#ff6bd6" },
-    actinideo: { nome: "Actinídeos", cor: "#ff9ecf" },
-    desconhecido: { nome: "Propriedades desconhecidas", cor: "#9aa3b8" },
+    alcalino: { nome: "Metais alcalinos", cor: "#e5646e" },
+    alcalinoterroso: { nome: "Metais alcalinoterrosos", cor: "#e8893f" },
+    transicao: { nome: "Metais de transição", cor: "#e6c04a" },
+    postransicao: { nome: "Outros metais", cor: "#8cc152" },
+    semimetal: { nome: "Semimetais", cor: "#3cc2a3" },
+    naometal: { nome: "Não metais", cor: "#4aa3e0" },
+    halogenio: { nome: "Halogênios", cor: "#7a86e8" },
+    nobre: { nome: "Gases nobres", cor: "#a67be0" },
+    lantanideo: { nome: "Lantanídeos", cor: "#e07bb8" },
+    actinideo: { nome: "Actinídeos", cor: "#d99aa8" },
+    desconhecido: { nome: "Propriedades desconhecidas", cor: "#8a94a3" },
   };
 
   const ESTADOS = {
-    s: { nome: "Sólido", cor: "#4da3ff" },
-    l: { nome: "Líquido", cor: "#ff9f43" },
-    g: { nome: "Gasoso", cor: "#d27bff" },
+    s: { nome: "Sólido", cor: "#5a9de0" },
+    l: { nome: "Líquido", cor: "#e8893f" },
+    g: { nome: "Gasoso", cor: "#b58be0" },
     x: { nome: "Desconhecido", cor: "#7d8597" },
   };
 
-  const ESCALA = ["#3a2dff", "#0096ff", "#19e3b1", "#ffd23f", "#ff3d6e"];
+  const ESCALA = ["#2c3e8f", "#2d84a8", "#3dbf9f", "#c9d65b", "#f0a43a"];
   const CAMADAS = "KLMNOPQ";
 
   const elementos = window.DADOS.map((d) => {
@@ -314,20 +314,6 @@
     aplicarModo();
   });
 
-  // ---------------------------------------------------------------------------
-  // Interação com as células (inclinação 3D e brilho que segue o cursor)
-  // ---------------------------------------------------------------------------
-  table.addEventListener("pointermove", (e) => {
-    const t = e.target.closest(".el:not(.placeholder)");
-    if (!t) return;
-    const r = t.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width;
-    const py = (e.clientY - r.top) / r.height;
-    t.style.setProperty("--mx", `${px * 100}%`);
-    t.style.setProperty("--my", `${py * 100}%`);
-    t.style.setProperty("--ry", `${(px - 0.5) * 22}deg`);
-    t.style.setProperty("--rx", `${(0.5 - py) * 22}deg`);
-  });
   table.addEventListener("pointerover", (e) => {
     const t = e.target.closest(".el[data-n]");
     if (t) atualizarPreview(elementos[t.dataset.n - 1]);
@@ -734,7 +720,7 @@
           Montar ${el.nome} no laboratório
         </button>
       </div>
-      <div class="panel glass">
+      <div class="panel surf">
         <h3>${icone("prop")}Propriedades</h3>
         <div class="stats">
           ${stat("Massa atômica", el.m, 3, "u")}
@@ -747,31 +733,31 @@
           ${stat("Camadas de elétrons", el.sh.length, 0, "")}
         </div>
       </div>
-      <div class="panel glass cmp">
+      <div class="panel surf cmp">
         <h3>${icone("prop")}Comparado com todos os elementos</h3>
         <div class="abas" role="tablist">${abas}</div>
         <div class="chart-box" id="chart-box">${graficoHTML(el, 0)}</div>
       </div>
       ${temSim ? simHTML(el) : ""}
-      <div class="panel glass">
+      <div class="panel surf">
         <h3>${icone("atom")}Configuração eletrônica</h3>
         <div class="cfg">${configHTML(el.cfg)}</div>
         <div class="shells">${camadas}</div>
       </div>
-      <div class="panel glass">
+      <div class="panel surf">
         <h3>${icone("pick")}Onde é encontrado e como é obtido</h3>
         <p>${esc(el.obtencao)}</p>
       </div>
-      <div class="panel glass">
+      <div class="panel surf">
         <h3>${icone("tool")}Para que serve</h3>
         <p>${esc(el.usos)}</p>
       </div>
-      <div class="panel glass">
+      <div class="panel surf">
         <h3>${icone("book")}Descoberta</h3>
         <div class="timeline"><span class="year">${esc(el.ano)}</span><span class="who">${esc(el.por)}</span></div>
         <p><strong>Origem do nome:</strong> ${esc(el.etimologia)}</p>
       </div>
-      <div class="panel glass fun">
+      <div class="panel surf fun">
         <h3>${icone("star")}Você sabia?</h3>
         <p>${esc(el.curiosidade)}</p>
       </div>`;
@@ -808,7 +794,7 @@
     const max = Math.max(Math.ceil(fim / 10) * 10, 20);
     const pct = (k) => (k == null ? 100 : clamp((k / max) * 100, 0, 100));
     return `
-      <div class="panel glass simbox">
+      <div class="panel surf simbox">
         <h3>${icone("prop")}E se a temperatura mudasse?</h3>
         <div class="sim-top"><span class="fase s" id="sim-fase">Sólido</span><output id="sim-T"></output></div>
         <canvas id="sim-cv" aria-hidden="true"></canvas>
@@ -902,20 +888,17 @@
     const { ctx, w, h } = sim;
     const [r, g, b] = sim.cor;
     ctx.clearRect(0, 0, w, h);
-    ctx.globalCompositeOperation = "lighter";
     const f = fasePorT(sim.el, sim.T);
-    const rad = f === "s" ? 4.2 : f === "l" ? 4 : 3.2;
+    const rad = f === "s" ? 4.6 : f === "l" ? 4.4 : 3.6;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.strokeStyle = "rgba(0,0,0,0.45)";
+    ctx.lineWidth = 1;
     for (const q of sim.p) {
-      const gr = ctx.createRadialGradient(q.x, q.y, 0, q.x, q.y, rad * 2.6);
-      gr.addColorStop(0, "rgba(255,255,255,0.95)");
-      gr.addColorStop(0.3, `rgba(${r},${g},${b},0.85)`);
-      gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
-      ctx.fillStyle = gr;
       ctx.beginPath();
-      ctx.arc(q.x, q.y, rad * 2.6, 0, 6.2832);
+      ctx.arc(q.x, q.y, rad, 0, 6.2832);
       ctx.fill();
+      ctx.stroke();
     }
-    ctx.globalCompositeOperation = "source-over";
   }
   function loopSim() {
     if (!sim.cv || !sim.cv.isConnected) return;
@@ -992,7 +975,6 @@
 
     // 1. câmera avança na tabela
     moverCamera(n, 1300);
-    warp(1);
     letterbox(true, 1100);
     backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: dur(1100), easing: CINE, fill: "forwards" });
 
@@ -1125,7 +1107,6 @@
     );
     setTimeout(() => {
       moverCamera(null, 1100);
-      warp(-0.6);
       letterbox(false, 900);
       backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: dur(900), easing: CINE, fill: "forwards" });
       document.body.classList.remove("cinema");
@@ -1172,6 +1153,10 @@
     }
     if ((e.key === "l" || e.key === "L") && document.activeElement !== search && !e.metaKey && !e.ctrlKey) {
       abrirLab("atomo");
+      return;
+    }
+    if ((e.key === "e" || e.key === "E") && document.activeElement !== search && !e.metaKey && !e.ctrlKey) {
+      abrirLab("quimica");
       return;
     }
     if (e.key === "/" && document.activeElement !== search) {
@@ -1253,14 +1238,6 @@
     const [r, g, b] = atomo.cor;
     const rgba = (a) => `rgba(${r},${g},${b},${a})`;
     actx.clearRect(0, 0, L, L);
-    actx.globalCompositeOperation = "lighter";
-
-    // halo do núcleo
-    const halo = actx.createRadialGradient(c, c, 0, c, c, R * 0.42);
-    halo.addColorStop(0, rgba(0.2));
-    halo.addColorStop(1, rgba(0));
-    actx.fillStyle = halo;
-    actx.fillRect(0, 0, L, L);
 
     const giroGlobal = t * 0.12;
     const pontos = [];
@@ -1282,7 +1259,7 @@
         const p = proj((k / 96) * Math.PI * 2);
         k ? actx.lineTo(p.x, p.y) : actx.moveTo(p.x, p.y);
       }
-      actx.strokeStyle = rgba(0.22);
+      actx.strokeStyle = rgba(0.38);
       actx.lineWidth = 1;
       actx.stroke();
       for (let e = 0; e < o.eletrons; e++) {
@@ -1291,93 +1268,14 @@
       }
     }
     for (const p of pontos) {
-      const s = 2.2 + (p.z + 1) * 1.4;
-      const gr = actx.createRadialGradient(p.x, p.y, 0, p.x, p.y, s * 4);
-      gr.addColorStop(0, "rgba(255,255,255,0.95)");
-      gr.addColorStop(0.25, rgba(0.8));
-      gr.addColorStop(1, rgba(0));
-      actx.fillStyle = gr;
+      const s = 3 + (p.z + 1) * 1.2;
+      actx.fillStyle = `rgb(${r},${g},${b})`;
+      actx.strokeStyle = "rgba(15,19,24,0.9)";
+      actx.lineWidth = 1.5;
       actx.beginPath();
-      actx.arc(p.x, p.y, s * 4, 0, Math.PI * 2);
+      actx.arc(p.x, p.y, s, 0, Math.PI * 2);
       actx.fill();
-    }
-    actx.globalCompositeOperation = "source-over";
-  }
-
-  // ---------------------------------------------------------------------------
-  // Fundo: campo de partículas com efeito de dobra no zoom
-  // ---------------------------------------------------------------------------
-  const pc = $("#particles");
-  const pctx = pc.getContext("2d");
-  let estrelas = [];
-  const fundo = { w: 0, h: 0, mx: 0, my: 0, warp: 0, warpAlvo: 0 };
-
-  function redimensionarFundo() {
-    const dpr = Math.min(devicePixelRatio || 1, 2);
-    fundo.w = innerWidth;
-    fundo.h = innerHeight;
-    pc.width = fundo.w * dpr;
-    pc.height = fundo.h * dpr;
-    pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const qtd = Math.round((fundo.w * fundo.h) / 9000);
-    estrelas = Array.from({ length: qtd }, () => ({
-      x: (Math.random() - 0.5) * fundo.w * 1.4,
-      y: (Math.random() - 0.5) * fundo.h * 1.4,
-      z: Math.random() * 0.9 + 0.1,
-      tw: Math.random() * Math.PI * 2,
-    }));
-  }
-  function warp(v) {
-    if (reduzMovimento) return;
-    fundo.warpAlvo = v;
-    setTimeout(() => (fundo.warpAlvo = 0), 700);
-  }
-  addEventListener("pointermove", (e) => {
-    fundo.mx = e.clientX / innerWidth - 0.5;
-    fundo.my = e.clientY / innerHeight - 0.5;
-  });
-
-  let ultimoQuadro = 0;
-  function desenharFundo(now) {
-    requestAnimationFrame(desenharFundo);
-    if (document.body.classList.contains("lab-open")) return; // o laboratório cobre a tela inteira
-    // fora do efeito de dobra, ~30 fps bastam e aliviam o vidro desfocado por cima
-    const emDobra = Math.abs(fundo.warp) > 0.02 || fundo.warpAlvo !== 0;
-    if (!emDobra && now - ultimoQuadro < 32) return;
-    ultimoQuadro = now;
-    const { w, h } = fundo;
-    fundo.warp += (fundo.warpAlvo - fundo.warp) * 0.06;
-    pctx.clearRect(0, 0, w, h);
-    const cx = w / 2 - fundo.mx * 30;
-    const cy = h / 2 - fundo.my * 30;
-    const wv = fundo.warp;
-    for (const s of estrelas) {
-      if (!reduzMovimento) {
-        const k = 1 + wv * 0.06 * s.z;
-        s.x *= k;
-        s.y *= k;
-        s.y -= 0.04 * s.z;
-        if (Math.abs(s.x) > w * 0.75 || Math.abs(s.y) > h * 0.75 || (wv < 0 && Math.abs(s.x) < 2)) {
-          s.x = (Math.random() - 0.5) * (wv > 0.05 ? w * 0.3 : w * 1.4);
-          s.y = (Math.random() - 0.5) * (wv > 0.05 ? h * 0.3 : h * 1.4);
-        }
-      }
-      const px = cx + s.x - fundo.mx * 40 * s.z;
-      const py = cy + s.y - fundo.my * 40 * s.z;
-      const a = (0.25 + 0.55 * s.z) * (0.6 + 0.4 * Math.sin(now / 700 + s.tw));
-      if (Math.abs(wv) > 0.05) {
-        const len = wv * 26 * s.z;
-        const d = Math.hypot(s.x, s.y) || 1;
-        pctx.strokeStyle = `rgba(200,215,255,${a})`;
-        pctx.lineWidth = s.z * 1.4;
-        pctx.beginPath();
-        pctx.moveTo(px, py);
-        pctx.lineTo(px - (s.x / d) * len, py - (s.y / d) * len);
-        pctx.stroke();
-      } else {
-        pctx.fillStyle = `rgba(210,220,255,${a})`;
-        pctx.fillRect(px, py, s.z * 1.6, s.z * 1.6);
-      }
+      actx.stroke();
     }
   }
 
@@ -1422,20 +1320,30 @@
     }
   });
 
-  // um brilho com a cor da categoria acompanha o cursor
-  const ambient = $("#ambient");
-  if (!toque.matches) {
-    table.addEventListener("pointerover", (e) => {
-      const t = e.target.closest(".el[data-n]");
-      if (!t || det.aberto) return;
-      const r = t.getBoundingClientRect();
-      ambient.style.setProperty("--ax", `${r.left + r.width / 2}px`);
-      ambient.style.setProperty("--ay", `${r.top + r.height / 2}px`);
-      ambient.style.setProperty("--ac", corDe(elementos[t.dataset.n - 1]));
-      ambient.classList.add("on");
-    });
-    table.addEventListener("pointerleave", () => ambient.classList.remove("on"));
+  // ---------------------------------------------------------------------------
+  // Guia "Como usar" (aparece na primeira visita)
+  // ---------------------------------------------------------------------------
+  const guia = $("#guia");
+  const guiaChave = "elementar.guia.visto";
+  function guiaAbrir() { guia.classList.add("on"); guia.setAttribute("aria-hidden", "false"); $("#guia-x").focus({ preventScroll: true }); }
+  function guiaFechar() {
+    guia.classList.remove("on"); guia.setAttribute("aria-hidden", "true");
+    try { localStorage.setItem(guiaChave, "1"); } catch (e) { /* sem armazenamento */ }
   }
+  $("#guia-open").addEventListener("click", guiaAbrir);
+  $("#guia-x").addEventListener("click", guiaFechar);
+  guia.addEventListener("click", (e) => { if (e.target === guia) guiaFechar(); });
+  guia.querySelectorAll("[data-ir]").forEach((b) => b.addEventListener("click", () => {
+    const alvo = b.dataset.ir;
+    guiaFechar();
+    if (alvo === "estudo") abrirLab("quimica", b);
+    else if (alvo === "lab") abrirLab("atomo", b);
+  }));
+  addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && guia.classList.contains("on")) { guiaFechar(); e.stopPropagation(); }
+    else if (e.key === "?" && !/input|textarea|select/i.test(e.target.tagName)) { guia.classList.contains("on") ? guiaFechar() : guiaAbrir(); }
+  }, true);
+  try { if (!location.hash && !localStorage.getItem(guiaChave)) setTimeout(guiaAbrir, 900); } catch (e) { /* ignora */ }
 
   // ---------------------------------------------------------------------------
   // Início
@@ -1446,9 +1354,6 @@
   atualizarPreview(elementos[0]);
   ajustarVista();
   toque.addEventListener?.("change", () => ajustarVista());
-  redimensionarFundo();
-  addEventListener("resize", redimensionarFundo);
-  requestAnimationFrame(desenharFundo);
   document.fonts?.ready.then(moverPill);
   moverPill();
 
@@ -1456,15 +1361,17 @@
   // Laboratório (carregado só quando alguém abre, para a tabela abrir rápido)
   // ---------------------------------------------------------------------------
   const labBotao = $("#lab-open");
-  const LAB_ARQUIVOS = ["js/lab/fisica.js", "js/lab/base.js", "js/lab/atomo.js", "js/lab/decaimento.js", "js/lab/reator.js", "js/lab/estrela.js", "js/lab/acelerador.js", "js/lab/lab.js"];
+  const LAB_ARQUIVOS = ["js/lab/fisica.js", "js/estudo/quimica-calc.js", "js/estudo/fisica-calc.js", "js/estudo/expressao.js", "js/estudo/matematica-calc.js", "js/estudo/pesquisa-calc.js", "js/estudo/quimica-redox-calc.js", "js/estudo/quimica-termo-calc.js", "js/lab/base.js", "js/lab/atomo.js", "js/lab/decaimento.js", "js/lab/reator.js", "js/lab/estrela.js", "js/lab/acelerador.js", "js/estudo/base-estudo.js", "js/estudo/quimica.js", "js/estudo/fisica-estudo.js", "js/estudo/quimica-redox.js", "js/estudo/quimica-termo.js", "js/estudo/matematica.js", "js/estudo/pesquisa.js", "js/lab/lab.js"];
   let labPromessa = null;
   function carregarLab() {
     if (labPromessa) return labPromessa;
     labPromessa = new Promise((resolve, reject) => {
-      const css = document.createElement("link");
-      css.rel = "stylesheet";
-      css.href = "css/lab.css";
-      document.head.appendChild(css);
+      ["css/lab.css", "css/estudo-quimica-redox.css", "css/estudo-quimica-termo.css", "css/estudo-matematica.css", "css/estudo-pesquisa.css"].forEach((href) => {
+        const css = document.createElement("link");
+        css.rel = "stylesheet";
+        css.href = href;
+        document.head.appendChild(css);
+      });
       LAB_ARQUIVOS.forEach((src, i) => {
         const sc = document.createElement("script");
         sc.src = src;
@@ -1489,12 +1396,17 @@
     }
   }
   labBotao.addEventListener("click", () => abrirLab("atomo"));
+  $("#estudo-open").addEventListener("click", (e) => abrirLab("quimica", e.currentTarget));
+  $("#hub-lab").addEventListener("click", (e) => abrirLab("atomo", e.currentTarget));
+  $("#hub-estudo").addEventListener("click", (e) => abrirLab("quimica", e.currentTarget));
   window.abrirLab = abrirLab;
 
   // Abrir direto um elemento pelo endereço (ex.: index.html#Fe) ou o laboratório (#lab/atomo)
   const hash = decodeURIComponent(location.hash.slice(1));
   if (/^lab/i.test(hash)) {
     setTimeout(() => abrirLab(hash.split("/")[1] || "atomo"), 300);
+  } else if (/^estudo/i.test(hash)) {
+    setTimeout(() => abrirLab(hash.split("/")[1] || "quimica"), 300);
   } else if (hash) {
     const alvo = elementos.find((e) => e.s.toLowerCase() === hash.toLowerCase() || String(e.n) === hash);
     if (alvo) setTimeout(() => abrirDetalhe(alvo.n), 1400);
