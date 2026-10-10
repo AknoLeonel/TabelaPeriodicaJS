@@ -42,7 +42,7 @@
   }
   const grade = (...cs) => { const g = el("div", "campos"); cs.forEach((c) => g.appendChild(c.el || c)); return g; };
 
-  let guiado = false;
+  let guiado = !!ler("estudo.guiado", false);
   function renderPassos(raiz, passos) {
     raiz.innerHTML = "";
     const ol = el("ol", "passos");
@@ -94,7 +94,7 @@
     raiz._r = r; raiz._corpo = corpo;
   }
   function repintarPassos() {
-    document.querySelectorAll(".est-wrap [data-res]").forEach((raiz) => { if (raiz._r && raiz._r.ok) renderPassos(raiz._corpo, raiz._r.passos); });
+    document.querySelectorAll(".est [data-res]").forEach((raiz) => { if (raiz._r && raiz._r.ok) renderPassos(raiz._corpo, raiz._r.passos); });
   }
   const resultadoBox = () => { const d = el("div", "est-res"); d.dataset.res = "1"; return d; };
   const dicaInicial = (t) => el("div", "est-vazio", t);
@@ -156,50 +156,146 @@
 
 
   // ---------- casca do módulo ----------
-  // cfg: { id, nome, sub, cor, icone, selo, nota, ferr, motor, chave, rodape, opcoes(api) }
-  // ferr: lista de ferramentas { id, nome, resumo, teoria, prat, montar(raiz, ctx) }
+  // cfg: { id, nome, sub, cor, icone, selo, nota, motor, chave, rodape, opcoes(api), opcoesTitulo, aoTrocar }
+  // Cada ferramenta: { id, nome, resumo, teoria, prat, montar(raiz, ctx) }
+  //
+  // Layout pensado para estudar sozinho: à esquerda (ou no seletor, no celular) a
+  // lista de ferramentas; à direita, uma etapa de cada vez — Entenda, Resolva, Pratique.
   const FERRAMENTAS = {};
+  const ETAPAS = [
+    { id: "teoria", n: 1, rotulo: "Entenda", dica: "o conceito" },
+    { id: "resolver", n: 2, rotulo: "Resolva", dica: "seu problema" },
+    { id: "treino", n: 3, rotulo: "Pratique", dica: "exercícios" },
+  ];
+  const SETA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  const AJUSTE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>';
+
   function modulo(cfg) {
     const FERR = FERRAMENTAS[cfg.id] = FERRAMENTAS[cfg.id] || [];
+    const chaveMemoria = `estudo.${cfg.id}.ultima`;
+    const vistas = new Set(ler("estudo.vistas", []));
+
     function criar(caixa) {
       caixa.classList.add("est");
-      const wrap = el("div", "est-wrap");
-      caixa.appendChild(wrap);
-      wrap.innerHTML = `<div class="est-head"><div><h3>${cfg.nome}</h3><p>${cfg.sub}</p></div></div>`;
-      const opcoes = el("details", "est-opc");
-      opcoes.innerHTML = `<summary>Opções: ${cfg.opcoesTitulo || "modo guiado"}</summary>`;
-      const segGuia = ui.segmentado({ itens: [{ id: "t", rotulo: "Tudo de uma vez" }, { id: "g", rotulo: "Passo a passo guiado" }], valor: guiado ? "g" : "t", onChange: (id) => { guiado = id === "g"; repintarPassos(); } });
-      const api = { reabrir: () => abrir(ferrAtual.def.id), recalcular: () => ferrAtual && ferrAtual.api && ferrAtual.api.recalcular && ferrAtual.api.recalcular(), modo: () => modo };
-      (cfg.opcoes ? cfg.opcoes(api) : []).forEach((x) => opcoes.appendChild(x));
-      opcoes.appendChild(segGuia.el);
-      const abas = ui.segmentado({ itens: FERR.map((f) => ({ id: f.id, rotulo: f.nome })), valor: FERR[0].id, onChange: (id) => abrir(id), cls: "est-abas" });
-      const modoSeg = ui.segmentado({ itens: [{ id: "resolver", rotulo: "Resolver" }, { id: "treino", rotulo: "Praticar" }], valor: "resolver", onChange: (id) => { modo = id; abrir(ferrAtual.def.id); } });
-      const resumo = el("p", "est-resumo");
-      const teoria = el("details", "teoria");
-      const painel = el("div", "est-painel");
-      wrap.append(abas.el, resumo, teoria, modoSeg.el, opcoes, painel);
-      if (cfg.rodape) wrap.appendChild(el("p", "est-rodape", cfg.rodape));
+      caixa.innerHTML = `
+        <div class="est-layout">
+          <aside class="est-lado">
+            <div class="est-materia"><span class="est-ic">${cfg.icone}</span><div><b>${cfg.nome}</b><small>${cfg.sub}</small></div></div>
+            <button class="est-pick" type="button" aria-expanded="false"><span class="est-pick-t"><small></small><b></b></span>${SETA}</button>
+            <nav class="est-lista" aria-label="Ferramentas de ${cfg.nome}"></nav>
+          </aside>
+          <article class="est-main">
+            <header class="est-ferr-h"><p class="est-kicker"></p><h3></h3><p class="est-resumo"></p></header>
+            <div class="est-barra">
+              <div class="est-etapas" role="tablist" aria-label="Etapas"></div>
+              <button class="est-ajustes-bt" type="button" aria-expanded="false" title="Ajustes">${AJUSTE}<span>Ajustes</span></button>
+            </div>
+            <section class="est-ajustes" hidden><h4>Ajustes</h4></section>
+            <section class="est-painel" aria-live="polite"></section>
+            ${cfg.rodape ? `<p class="est-rodape">${cfg.rodape}</p>` : ""}
+          </article>
+        </div>`;
+      const q = (s) => caixa.querySelector(s);
+      const lista = q(".est-lista"), pick = q(".est-pick"), painel = q(".est-painel");
+      const etapasEl = q(".est-etapas"), ajustes = q(".est-ajustes"), ajustesBt = q(".est-ajustes-bt");
 
-      let modo = "resolver", ferrAtual = null;
-      const ctx = { irPara: (id) => { abas.set(id); abrir(id); } };
-      function abrir(id) {
-        const def = FERR.find((x) => x.id === id);
+      // ajustes (opções do módulo + modo guiado), num painel que empurra o conteúdo
+      const api = { reabrir: () => abrir(ferrAtual.def.id), recalcular: () => ferrAtual && ferrAtual.api && ferrAtual.api.recalcular && ferrAtual.api.recalcular(), modo: () => etapa };
+      (cfg.opcoes ? cfg.opcoes(api) : []).forEach((x) => ajustes.appendChild(x));
+      const segGuia = ui.segmentado({ itens: [{ id: "t", rotulo: "Mostrar a solução inteira" }, { id: "g", rotulo: "Um passo de cada vez" }], valor: guiado ? "g" : "t", onChange: (id) => { guiado = id === "g"; guardar("estudo.guiado", guiado); repintarPassos(); } });
+      ajustes.append(el("p", "est-ajustes-rot", "Passo a passo"), segGuia.el);
+      ajustesBt.addEventListener("click", () => {
+        ajustes.hidden = !ajustes.hidden;
+        ajustesBt.setAttribute("aria-expanded", String(!ajustes.hidden));
+        ajustesBt.classList.toggle("on", !ajustes.hidden);
+      });
+
+      // lista de ferramentas
+      const itens = new Map();
+      FERR.forEach((f, i) => {
+        const b = el("button", "", `<span class="est-n">${String(i + 1).padStart(2, "0")}</span><span class="est-li"><b>${f.nome}</b><small>${f.resumo}</small></span>`);
+        b.type = "button";
+        b.addEventListener("click", () => { abrir(f.id); fecharLista(); caixa.scrollTo({ top: 0 }); });
+        itens.set(f.id, b);
+        lista.appendChild(b);
+      });
+      const fecharLista = () => { lista.classList.remove("aberta"); pick.setAttribute("aria-expanded", "false"); };
+      pick.addEventListener("click", () => {
+        const abre = !lista.classList.contains("aberta");
+        lista.classList.toggle("aberta", abre);
+        pick.setAttribute("aria-expanded", String(abre));
+        if (abre) itens.get(ferrAtual.def.id)?.scrollIntoView({ block: "nearest" });
+      });
+
+      // etapas
+      const etapaBt = new Map();
+      for (const e of ETAPAS) {
+        const b = el("button", "", `<i>${e.n}</i><span><b>${e.rotulo}</b><small>${e.dica}</small></span>`);
+        b.type = "button";
+        b.setAttribute("role", "tab");
+        b.addEventListener("click", () => irEtapa(e.id));
+        etapaBt.set(e.id, b);
+        etapasEl.appendChild(b);
+      }
+
+      let etapa = "resolver", ferrAtual = null;
+      const ctx = { irPara: (id) => { abrir(id); caixa.scrollTo({ top: 0 }); } };
+
+      function irEtapa(id) {
+        const def = ferrAtual.def;
+        if (id === "teoria" && !def.teoria) id = "resolver";
+        if (id === "treino" && !def.prat) id = "resolver";
+        etapa = id;
+        etapaBt.forEach((b, k) => { b.classList.toggle("on", k === id); b.setAttribute("aria-selected", String(k === id)); });
         if (cfg.aoTrocar) cfg.aoTrocar();
         painel.innerHTML = "";
-        resumo.textContent = def.resumo;
-        teoria.hidden = !def.teoria;
-        if (def.teoria) { teoria.innerHTML = `<summary>Entenda a teoria</summary><div class="teoria-c">${def.teoria}</div>`; }
-        abas.set(id);
-        modoSeg.el.hidden = !def.prat;
-        if (!def.prat && modo === "treino") { modo = "resolver"; modoSeg.set("resolver"); }
-        const area = el("div");
+        painel.dataset.etapa = id;
+        const area = el("div", "est-area");
         painel.appendChild(area);
-        if (modo === "treino" && def.prat) { praticar(area, def.prat, cfg.motor, cfg.chave); ferrAtual = { def, api: null }; return; }
-        const a = def.montar(area, ctx);
-        ferrAtual = { def, api: a };
+        if (id === "teoria") {
+          area.innerHTML = `<div class="teoria-c">${def.teoria}</div>`;
+          const prox = el("div", "est-prox");
+          prox.appendChild(ui.botao("Resolver um problema →", () => irEtapa("resolver")));
+          if (def.prat) prox.appendChild(ui.botao("Treinar com exercícios", () => irEtapa("treino"), "sec"));
+          area.appendChild(prox);
+          ferrAtual = { def, api: null };
+        } else if (id === "treino") {
+          praticar(area, def.prat, cfg.motor, cfg.chave);
+          ferrAtual = { def, api: null };
+        } else {
+          ferrAtual = { def, api: def.montar(area, ctx) };
+        }
       }
-      abrir(FERR[0].id);
-      return { iniciar() {}, parar() { if (cfg.aoTrocar) cfg.aoTrocar(); }, abrir };
+
+      function abrir(id) {
+        const def = FERR.find((x) => x.id === id) || FERR[0];
+        ferrAtual = { def, api: null };
+        const i = FERR.indexOf(def);
+        itens.forEach((b, k) => { b.classList.toggle("on", k === def.id); b.setAttribute("aria-current", k === def.id ? "true" : "false"); });
+        q(".est-kicker").textContent = `${cfg.nome} · ferramenta ${i + 1} de ${FERR.length}`;
+        q(".est-ferr-h h3").textContent = def.nome;
+        q(".est-resumo").textContent = def.resumo;
+        pick.querySelector("small").textContent = `Ferramenta ${i + 1} de ${FERR.length}`;
+        pick.querySelector("b").textContent = def.nome;
+        etapaBt.get("teoria").hidden = !def.teoria;
+        etapaBt.get("treino").hidden = !def.prat;
+        // primeira visita a uma ferramenta: começa pela teoria; depois, direto ao problema
+        const chave = `${cfg.id}/${def.id}`;
+        const primeira = def.teoria && !vistas.has(chave);
+        if (primeira) { vistas.add(chave); guardar("estudo.vistas", [...vistas]); }
+        irEtapa(primeira ? "teoria" : etapa === "teoria" ? "resolver" : etapa);
+        guardar(chaveMemoria, def.id);
+        if (LAB.estaAberto && LAB.estaAberto() && location.hash.startsWith(`#estudo/${cfg.id}`)) history.replaceState(null, "", `#estudo/${cfg.id}/${def.id}`);
+      }
+
+      const doEndereco = decodeURIComponent(location.hash).split("/")[2];
+      const inicial = [doEndereco, ler(chaveMemoria, null)].find((x) => x && FERR.some((f) => f.id === x)) || FERR[0].id;
+      abrir(inicial);
+      return {
+        iniciar() { if (location.hash === `#estudo/${cfg.id}` && ferrAtual) history.replaceState(null, "", `#estudo/${cfg.id}/${ferrAtual.def.id}`); },
+        parar() { if (cfg.aoTrocar) cfg.aoTrocar(); },
+        abrir,
+      };
     }
     LAB.modulos.push({ id: cfg.id, grupo: "estudo", nome: cfg.nome, resumo: cfg.sub, cor: cfg.cor, selo: cfg.selo || "verificavel", icone: cfg.icone, nota: cfg.nota, criar });
     return FERR;

@@ -1152,11 +1152,11 @@
       return;
     }
     if ((e.key === "l" || e.key === "L") && document.activeElement !== search && !e.metaKey && !e.ctrlKey) {
-      abrirLab("atomo");
+      abrirLab("lab");
       return;
     }
     if ((e.key === "e" || e.key === "E") && document.activeElement !== search && !e.metaKey && !e.ctrlKey) {
-      abrirLab("quimica");
+      abrirLab("estudo");
       return;
     }
     if (e.key === "/" && document.activeElement !== search) {
@@ -1336,8 +1336,8 @@
   guia.querySelectorAll("[data-ir]").forEach((b) => b.addEventListener("click", () => {
     const alvo = b.dataset.ir;
     guiaFechar();
-    if (alvo === "estudo") abrirLab("quimica", b);
-    else if (alvo === "lab") abrirLab("atomo", b);
+    if (alvo === "estudo") abrirLab("estudo", b);
+    else if (alvo === "lab") abrirLab("lab", b);
   }));
   addEventListener("keydown", (e) => {
     if (e.key === "Escape" && guia.classList.contains("on")) { guiaFechar(); e.stopPropagation(); }
@@ -1361,17 +1361,17 @@
   // Laboratório (carregado só quando alguém abre, para a tabela abrir rápido)
   // ---------------------------------------------------------------------------
   const labBotao = $("#lab-open");
-  const LAB_ARQUIVOS = ["js/lab/fisica.js", "js/estudo/quimica-calc.js", "js/estudo/fisica-calc.js", "js/estudo/expressao.js", "js/estudo/matematica-calc.js", "js/estudo/pesquisa-calc.js", "js/estudo/quimica-redox-calc.js", "js/estudo/quimica-termo-calc.js", "js/lab/base.js", "js/lab/atomo.js", "js/lab/decaimento.js", "js/lab/reator.js", "js/lab/estrela.js", "js/lab/acelerador.js", "js/estudo/base-estudo.js", "js/estudo/quimica.js", "js/estudo/fisica-estudo.js", "js/estudo/quimica-redox.js", "js/estudo/quimica-termo.js", "js/estudo/matematica.js", "js/estudo/pesquisa.js", "js/lab/lab.js"];
+  // Só a casca é baixada aqui; cada módulo (Átomo, Química, Física...) é baixado
+  // pela própria casca quando alguém o abre (veja js/lab/lab.js).
+  const LAB_ARQUIVOS = ["js/lab/fisica.js", "js/lab/base.js", "js/lab/lab.js"];
   let labPromessa = null;
   function carregarLab() {
     if (labPromessa) return labPromessa;
     labPromessa = new Promise((resolve, reject) => {
-      ["css/lab.css", "css/estudo-quimica-redox.css", "css/estudo-quimica-termo.css", "css/estudo-matematica.css", "css/estudo-pesquisa.css"].forEach((href) => {
-        const css = document.createElement("link");
-        css.rel = "stylesheet";
-        css.href = href;
-        document.head.appendChild(css);
-      });
+      const css = document.createElement("link");
+      css.rel = "stylesheet";
+      css.href = "css/lab.css";
+      document.head.appendChild(css);
       LAB_ARQUIVOS.forEach((src, i) => {
         const sc = document.createElement("script");
         sc.src = src;
@@ -1383,30 +1383,30 @@
     });
     return labPromessa;
   }
-  async function abrirLab(id = "atomo", origem = labBotao) {
+  async function abrirLab(id = "lab", origem = labBotao) {
     labBotao.classList.add("carregando");
     try {
       await carregarLab();
       const r = origem.getBoundingClientRect();
-      window.LAB.abrir(id, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+      await window.LAB.abrir(id, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
     } catch (e) {
       avisar("Não consegui abrir o laboratório. Verifique a conexão.");
     } finally {
       labBotao.classList.remove("carregando");
     }
   }
-  labBotao.addEventListener("click", () => abrirLab("atomo"));
-  $("#estudo-open").addEventListener("click", (e) => abrirLab("quimica", e.currentTarget));
-  $("#hub-lab").addEventListener("click", (e) => abrirLab("atomo", e.currentTarget));
-  $("#hub-estudo").addEventListener("click", (e) => abrirLab("quimica", e.currentTarget));
+  labBotao.addEventListener("click", () => abrirLab("lab"));
+  $("#estudo-open").addEventListener("click", (e) => abrirLab("estudo", e.currentTarget));
+  $("#hub-lab").addEventListener("click", (e) => abrirLab("lab", e.currentTarget));
+  $("#hub-estudo").addEventListener("click", (e) => abrirLab("estudo", e.currentTarget));
   window.abrirLab = abrirLab;
 
   // Abrir direto um elemento pelo endereço (ex.: index.html#Fe) ou o laboratório (#lab/atomo)
   const hash = decodeURIComponent(location.hash.slice(1));
   if (/^lab/i.test(hash)) {
-    setTimeout(() => abrirLab(hash.split("/")[1] || "atomo"), 300);
+    setTimeout(() => abrirLab(hash.split("/")[1] || "lab"), 300);
   } else if (/^estudo/i.test(hash)) {
-    setTimeout(() => abrirLab(hash.split("/")[1] || "quimica"), 300);
+    setTimeout(() => abrirLab(hash.split("/")[1] || "estudo"), 300);
   } else if (hash) {
     const alvo = elementos.find((e) => e.s.toLowerCase() === hash.toLowerCase() || String(e.n) === hash);
     if (alvo) setTimeout(() => abrirDetalhe(alvo.n), 1400);

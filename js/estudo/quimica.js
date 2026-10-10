@@ -293,7 +293,7 @@
         if (r.ok) r.respostaHTML = `<span class="conf">${r.config}</span><br><small>${r.el.nome} · grupo ${r.grupo || "—"} · período ${r.periodo} · bloco ${r.bloco}</small>`;
         mostrar(res, r, {
           extra: (rr) => {
-            const bt = ui.botao("Ver este átomo no Laboratório →", () => { LAB.ativar("atomo"); LAB.atomoDefinir(Z, Math.max(Math.round(rr.el.m) - Z, 0)); }, "sec");
+            const bt = ui.botao("Ver este átomo no Laboratório →", () => LAB.ativar("atomo").then(() => LAB.atomoDefinir && LAB.atomoDefinir(Z, Math.max(Math.round(rr.el.m) - Z, 0))), "sec");
             return bt;
           },
         });
