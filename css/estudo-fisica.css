@@ -1,0 +1,19 @@
+/* Física: ferramentas extras (movimento, forças, óptica, ondas, termologia) */
+.f2-sub { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.f2-dica { display: block; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.f2-ex { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.f2-rot { font-size: 12.5px; color: var(--muted); }
+.f2-g { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.f2-g[hidden] { display: none; }
+.f2-gt { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.f2-grafs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; }
+.f2-grafs[hidden] { display: none; }
+@media (min-width: 1100px) {
+  .f2-grafs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .f2-grafs > .f2-g:last-child { grid-column: 1 / -1; }
+}
+.f2-linha { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; min-width: 0; }
+.f2-linha > .campo { flex: 1 1 180px; min-width: 0; }
+.f2-linha > .seg { flex: 0 1 auto; }
+.campos.f2-tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.f2-tres .c-rot { font-size: 12px; }

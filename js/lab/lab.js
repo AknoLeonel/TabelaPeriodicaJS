@@ -13,7 +13,7 @@
   const raiz = document.getElementById("lab");
   const OUT = "cubic-bezier(0.16, 1, 0.3, 1)";
 
-  const ESTUDO_BASE = ["js/estudo/quimica-calc.js", "js/estudo/base-estudo.js", "js/estudo/grafico.js"];
+  const ESTUDO_BASE = ["js/estudo/quimica-calc.js", "js/estudo/base-estudo.js", "js/estudo/grafico.js", "js/estudo/aula.js"];
   const CATALOGO = [
     { id: "atomo", grupo: "lab", nome: "Átomo", resumo: "Monte, decaia e divida qualquer átomo", cor: "#38b6ff", icone: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><ellipse cx="12" cy="12" rx="10" ry="4"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-60 12 12)"/></svg>', js: ["js/lab/atomo.js"] },
     { id: "decaimento", grupo: "lab", nome: "Decaimento", resumo: "Meia-vida e contador Geiger", cor: "#2ee6b6", icone: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.2"/><path d="M12 3a9 9 0 0 1 7.8 4.5L15 10"/><path d="M20.8 15A9 9 0 0 1 12 21l.2-5.5"/><path d="M3.2 15A9 9 0 0 1 4.2 7.5L9 10"/></svg>', js: ["js/lab/decaimento.js"] },
@@ -22,19 +22,33 @@
     { id: "acelerador", grupo: "lab", nome: "Acelerador", resumo: "Colida partículas e veja o que nasce", cor: "#a46bff", icone: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v4.5M12 16.5V21M3 12h4.5M16.5 12H21"/></svg>', js: ["js/lab/acelerador.js"] },
     {
       id: "quimica", grupo: "estudo", nome: "Química", resumo: "Resolva passo a passo ou treine com exercícios novos.", cor: "#2ee6b6", icone: '<svg viewBox="0 0 24 24"><path d="M9 3h6"/><path d="M10 3v6.2L4.6 18.3A2 2 0 0 0 6.3 21h11.4a2 2 0 0 0 1.7-2.7L14 9.2V3"/><path d="M7.5 14h9"/></svg>',
-      js: [...ESTUDO_BASE, "js/estudo/quimica-redox-calc.js", "js/estudo/quimica-termo-calc.js", "js/estudo/quimica.js", "js/estudo/quimica-redox.js", "js/estudo/quimica-termo.js"],
+      js: [...ESTUDO_BASE, "js/estudo/quimica-redox-calc.js", "js/estudo/quimica-termo-calc.js", "js/estudo/quimica.js", "js/estudo/quimica-redox.js", "js/estudo/quimica-termo.js", "js/estudo/aulas/quimica.js", "js/estudo/aulas/quimica-base.js", "js/estudo/aulas/quimica-avancada.js"],
       css: ["css/estudo-quimica-redox.css", "css/estudo-quimica-termo.css"],
     },
-    { id: "fisica", grupo: "estudo", nome: "Física", resumo: "Resolva passo a passo, com unidades, ou treine com exercícios novos.", cor: "#4da3ff", icone: '<svg viewBox="0 0 24 24"><path d="M4 18c3-9 5-9 8 0s5 9 8 0"/><path d="M3 12h18"/></svg>', js: [...ESTUDO_BASE, "js/estudo/fisica-calc.js", "js/estudo/fisica-estudo.js"] },
+    { id: "fisica", grupo: "estudo", nome: "Física", resumo: "Resolva passo a passo, com unidades, ou treine com exercícios novos.", cor: "#4da3ff", icone: '<svg viewBox="0 0 24 24"><path d="M4 18c3-9 5-9 8 0s5 9 8 0"/><path d="M3 12h18"/></svg>', js: [...ESTUDO_BASE, "js/estudo/fisica-calc.js", "js/estudo/fisica2-calc.js", "js/estudo/fisica-estudo.js", "js/estudo/fisica-mais.js", "js/estudo/aulas/fisica.js", "js/estudo/aulas/fisica-mais.js"], css: ["css/estudo-fisica.css"] },
     {
       id: "matematica", grupo: "estudo", nome: "Matemática", resumo: "A matemática que aparece em química, física e cálculo, passo a passo.", cor: "#f0a23c", icone: '<svg viewBox="0 0 24 24"><path d="M5 5h6M8 2v6"/><path d="M14 5h6"/><path d="M5 16l5 5M10 16l-5 5"/><path d="M14 17h6M14 20h6"/></svg>',
-      js: [...ESTUDO_BASE, "js/estudo/expressao.js", "js/estudo/matematica-calc.js", "js/estudo/matematica.js"], css: ["css/estudo-matematica.css"],
+      js: [...ESTUDO_BASE, "js/estudo/expressao.js", "js/estudo/matematica-calc.js", "js/estudo/matematica.js", "js/estudo/aulas/matematica.js"], css: ["css/estudo-matematica.css"],
+    },
+    {
+      id: "biologia", grupo: "estudo", nome: "Biologia", resumo: "Genética, DNA e populações: cruzamentos, probabilidades e modelos passo a passo.", cor: "#9ccc65",
+      icone: '<svg viewBox="0 0 24 24"><path d="M7 3c0 6 10 6 10 12s-10 6-10 6"/><path d="M17 3c0 6-10 6-10 12s10 6 10 6"/><path d="M8.5 6h7M8.5 18h7M10 9.5h4M10 14.5h4"/></svg>',
+      js: [...ESTUDO_BASE, "js/estudo/biologia-calc.js", "js/estudo/biologia.js", "js/estudo/aulas/biologia.js"], css: ["css/estudo-biologia.css"],
     },
     {
       id: "pesquisa", grupo: "estudo", nome: "Pesquisa", resumo: "Ferramentas para relatórios de laboratório, TCC e iniciação científica.", cor: "#d9648c", icone: '<svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 16l4-5 3 3 5-7"/><circle cx="6" cy="16" r="1"/><circle cx="10" cy="11" r="1"/><circle cx="13" cy="14" r="1"/><circle cx="18" cy="7" r="1"/></svg>',
-      js: [...ESTUDO_BASE, "js/estudo/expressao.js", "js/estudo/pesquisa-calc.js", "js/estudo/pesquisa.js"], css: ["css/estudo-pesquisa.css"],
+      js: [...ESTUDO_BASE, "js/estudo/expressao.js", "js/estudo/pesquisa-calc.js", "js/estudo/pesquisa.js", "js/estudo/aulas/pesquisa.js"], css: ["css/estudo-pesquisa.css"],
     },
   ];
+  // Provas usa os motores de todas as matérias do estudo
+  {
+    const est = CATALOGO.filter((c) => c.grupo === "estudo");
+    CATALOGO.push({
+      id: "provas", grupo: "estudo", nome: "Provas", resumo: "Simulados com correção, domínio por tópico e histórico.", cor: "#f2c14e",
+      icone: '<svg viewBox="0 0 24 24"><path d="M9 4h6v3H9z"/><path d="M15 5h3v16H6V5h3"/><path d="M9 12l2 2 4-4"/><path d="M9 17h6"/></svg>',
+      js: [...new Set(est.flatMap((c) => c.js)), "js/estudo/provas.js"], css: [...new Set(est.flatMap((c) => c.css || []))],
+    });
+  }
 
   // ---------- carregamento sob demanda ----------
   const scripts = new Map(); // src -> Promise
