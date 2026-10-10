@@ -15,14 +15,25 @@ Dá para abrir direto um elemento pelo endereço: `index.html#Fe`, `index.html#7
 
 ## O que tem
 
-- **Vidro em cada célula**: desfoque do fundo, reflexo, brilho que segue o cursor e inclinação 3D ao passar o mouse.
-- **Zoom cinematográfico**: ao clicar, a câmera avança sobre a tabela (que fica desfocada), surgem as faixas pretas de cinema, as estrelas do fundo passam em velocidade de dobra e o elemento voa até o primeiro plano com um clarão de luz.
-- **Modelo atômico animado** com os elétrons distribuídos nas camadas reais do elemento.
-- **Painéis de informação** que sobem em sequência: propriedades físicas (com contagem animada), configuração eletrônica, onde é encontrado e como é obtido, para que serve, descoberta e origem do nome, e uma curiosidade.
-- **Navegação** entre elementos com ← →, botões ou deslizando o dedo no celular. `Esc` fecha.
-- **Modos de visualização**: categoria, estado físico (com controle de temperatura de 0 a 6000 K), eletronegatividade, raio atômico e linha do tempo das descobertas.
+- **Vidro em cada célula**: desfoque do fundo, reflexo, brilho que segue o cursor (com a cor da categoria) e inclinação 3D ao passar o mouse.
+- **Zoom cinematográfico**: ao clicar, a câmera avança sobre a tabela, surgem as faixas de cinema, as estrelas passam em velocidade de dobra e o elemento voa até o primeiro plano com um clarão de luz.
+- **Ficha do elemento**, na ordem em que se lê melhor:
+  - tags rápidas (estado, metal ou não, grupo, período, bloco, radioativo/sintético) e um mapa com a posição dele na tabela;
+  - propriedades com contagem animada;
+  - **gráfico comparativo**: eletronegatividade, raio, ionização, densidade ou fusão ao longo de toda a tabela, com o elemento em destaque e a posição no ranking;
+  - **simulador de temperatura**: arraste e veja o elemento virar sólido, líquido ou gás, com as partículas se movendo;
+  - configuração eletrônica, onde é encontrado e como é obtido, para que serve, descoberta, origem do nome e curiosidade.
+- **Modelo atômico animado** com os elétrons nas camadas reais, e contagem de prótons, elétrons e nêutrons.
+- **Navegação** com ← →, botões ou deslizando o dedo; `R` ou "Surpreenda-me" abre um elemento aleatório; o botão de link copia/compartilha o endereço do elemento.
+- **Modos de visualização**: categoria, estado físico (temperatura de 0 a 6000 K), eletronegatividade, raio atômico e linha do tempo das descobertas.
 - **Busca** por nome, símbolo ou número (atalho `/`, `Enter` abre o melhor resultado).
-- Legenda interativa: passe o mouse ou clique numa categoria para destacá-la.
+
+### No celular
+
+- Em pé, a tabela inteira cabe na tela. **Pince para ampliar e arraste para mover** (ou use os botões + − ⤢); quanto mais você amplia, mais informação aparece em cada célula.
+- Há um cartão de **elemento do dia** abaixo da tabela.
+- Deitado, a tabela ocupa a tela toda.
+- Sem desfoque pesado nas células e sem efeito de hover, para ficar leve em aparelhos mais fracos. A ficha respeita as áreas seguras (notch e barra inferior).
 - Respeita a preferência do sistema por movimento reduzido.
 
 ## Arquivos

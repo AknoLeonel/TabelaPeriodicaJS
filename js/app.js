@@ -378,37 +378,178 @@
   // ---------------------------------------------------------------------------
   // Câmera: zoom cinematográfico sobre a tabela
   // ---------------------------------------------------------------------------
-  const ZOOM = 3.4;
-  const camera = { base: null, transform: "none", filter: "none" };
+  const panEl = $("#pan");
+  const stage = $("#stage");
+  const toque = matchMedia("(pointer: coarse)");
+  const camera = { rest: { s: 1, x: 0, y: 0 }, L0: 0, T0: 0, transform: "", filter: "" };
+  const vista = { s: 1, x: 0, y: 0 };
+  const FILTRO_REPOUSO = "blur(0px) brightness(1) saturate(1)";
+  const tstr = (v) => `translate(${v.x}px, ${v.y}px) scale(${v.s})`;
 
+  // "Zoom semântico": quando as células são pequenas (celular), o conteúdo delas
+  // depende do tamanho que aparecem na tela, e não só do tamanho nominal.
+  function atualizarNiveis() {
+    const nominal = tiles.get(1).offsetWidth;
+    if (nominal >= 40) return table.removeAttribute("data-lv");
+    const ef = nominal * vista.s;
+    table.dataset.lv = ef < 30 ? "0" : ef < 56 ? "1" : ef < 90 ? "2" : "3";
+  }
+  function aplicarVista() {
+    panEl.style.transform = tstr(vista);
+    atualizarNiveis();
+  }
+  function origemPan() {
+    const r = panEl.getBoundingClientRect();
+    return { x: r.left - vista.x, y: r.top - vista.y };
+  }
+  // Mantém a tabela dentro da área visível (centralizada se for menor que ela)
+  function escalaMin() {
+    const a = stage.getBoundingClientRect();
+    return Math.min(1, (a.width - 4) / panEl.offsetWidth, (a.height - 4) / panEl.offsetHeight);
+  }
+  function limitar(v, o = origemPan()) {
+    v.s = clamp(v.s, escalaMin(), 6);
+    const area = stage.getBoundingClientRect();
+    const W = panEl.offsetWidth * v.s;
+    const H = panEl.offsetHeight * v.s;
+    v.x = W <= area.width ? area.left + (area.width - W) / 2 - o.x : clamp(v.x, area.right - W - o.x, area.left - o.x);
+    v.y = H <= area.height ? area.top + (area.height - H) / 2 - o.y : clamp(v.y, area.bottom - H - o.y, area.top - o.y);
+    return v;
+  }
+  let ajustado = false;
+  function ajustarVista(animar = false) {
+    if (det.aberto) return;
+    if (!toque.matches) { Object.assign(vista, { s: 1, x: 0, y: 0 }); ajustado = false; panEl.style.transform = ""; return atualizarNiveis(); }
+    panEl.classList.toggle("anim", animar);
+    if (!ajustado) { vista.s = escalaMin(); ajustado = true; }
+    limitar(vista);
+    aplicarVista();
+  }
+  function zoomPara(fator, cx, cy) {
+    const o = origemPan();
+    const area = stage.getBoundingClientRect();
+    cx ??= area.left + area.width / 2;
+    cy ??= area.top + area.height / 2;
+    const s2 = clamp(vista.s * fator, escalaMin(), 6);
+    const k = s2 / vista.s;
+    vista.x = cx - o.x - (cx - o.x - vista.x) * k;
+    vista.y = cy - o.y - (cy - o.y - vista.y) * k;
+    vista.s = s2;
+    panEl.classList.add("anim");
+    limitar(vista, o);
+    aplicarVista();
+  }
+
+  // Gestos: arrastar com um dedo, pinça com dois
+  (function gestos() {
+    const ptrs = new Map();
+    let ini = null;
+    let moveu = false;
+    const medidas = () => {
+      const [a, b] = [...ptrs.values()];
+      return b
+        ? { cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, d: Math.hypot(a.x - b.x, a.y - b.y) || 1 }
+        : { cx: a.x, cy: a.y, d: 0 };
+    };
+    const reiniciar = () => {
+      ini = ptrs.size ? { ...medidas(), v: { ...vista }, o: origemPan() } : null;
+    };
+    stage.addEventListener("pointerdown", (e) => {
+      if (!toque.matches || det.aberto || e.pointerType === "mouse") return;
+      panEl.classList.remove("anim");
+      if (!ptrs.size) moveu = false;
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      reiniciar();
+    });
+    stage.addEventListener("pointermove", (e) => {
+      if (!ptrs.has(e.pointerId) || !ini) return;
+      ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      const m = medidas();
+      if (!moveu && ptrs.size < 2 && Math.hypot(m.cx - ini.cx, m.cy - ini.cy) < 8) return;
+      moveu = true;
+      const s2 = clamp(ini.v.s * (ini.d ? m.d / ini.d : 1), escalaMin(), 6);
+      // o ponto da tabela sob o centro dos dedos acompanha o centro dos dedos
+      const ux = (ini.cx - ini.o.x - ini.v.x) / ini.v.s;
+      const uy = (ini.cy - ini.o.y - ini.v.y) / ini.v.s;
+      vista.s = s2;
+      vista.x = m.cx - ini.o.x - ux * s2;
+      vista.y = m.cy - ini.o.y - uy * s2;
+      limitar(vista, ini.o);
+      aplicarVista();
+    });
+    const soltar = (e) => {
+      if (!ptrs.delete(e.pointerId)) return;
+      reiniciar();
+    };
+    stage.addEventListener("pointerup", soltar);
+    stage.addEventListener("pointercancel", soltar);
+    // depois de arrastar, o toque não deve abrir o elemento
+    stage.addEventListener(
+      "click",
+      (e) => {
+        if (moveu) { e.stopPropagation(); e.preventDefault(); moveu = false; }
+      },
+      true
+    );
+  })();
+
+  $("#zoomctl").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-z]");
+    if (!b) return;
+    if (b.dataset.z === "fit") { vista.s = escalaMin(); ajustarVista(true); }
+    else zoomPara(b.dataset.z === "in" ? 1.7 : 1 / 1.7);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Câmera: zoom cinematográfico sobre a tabela
+  // ---------------------------------------------------------------------------
   function centroLocal(n) {
     const t = tiles.get(n);
     return { x: t.offsetLeft + t.offsetWidth / 2, y: t.offsetTop + t.offsetHeight / 2 };
   }
+  function fixarRepouso() {
+    // retrato da vista em repouso, antes de mover a câmera
+    const o = origemPan();
+    camera.L0 = o.x;
+    camera.T0 = o.y;
+    camera.rest = { ...vista };
+    camera.transform = tstr(vista);
+    camera.filter = FILTRO_REPOUSO;
+  }
   function moverCamera(alvo, ms) {
-    let transform = "translate(0px, 0px) scale(1)";
-    let filter = "blur(0px) brightness(1) saturate(1)";
+    let destino = { ...camera.rest };
+    let filter = FILTRO_REPOUSO;
     if (alvo) {
+      // a célula fica onde estava e a tabela cresce a partir dela
       const p = centroLocal(alvo);
-      transform = `translate(${p.x * (1 - ZOOM)}px, ${p.y * (1 - ZOOM)}px) scale(${ZOOM})`;
-      filter = "blur(9px) brightness(0.55) saturate(1.3)";
+      const r = camera.rest;
+      const zoom = Math.min(Math.max(toque.matches || innerWidth < 860 ? 7 : 3.4, r.s * 1.5), 9);
+      const s2 = Math.min(r.s * zoom, 9);
+      const cx = camera.L0 + r.x + r.s * p.x;
+      const cy = camera.T0 + r.y + r.s * p.y;
+      destino = { s: s2, x: cx - camera.L0 - s2 * p.x, y: cy - camera.T0 - s2 * p.y };
+      filter = `blur(${innerWidth < 860 ? 5 : 9}px) brightness(0.55) saturate(1.3)`;
     }
-    const from = { transform: camera.transform === "none" ? "translate(0px, 0px) scale(1)" : camera.transform, filter: camera.filter === "none" ? "blur(0px) brightness(1) saturate(1)" : camera.filter };
-    table.getAnimations().forEach((a) => a.cancel());
-    table.style.transform = transform;
-    table.style.filter = filter;
-    camera.transform = transform;
+    const from = { transform: camera.transform, filter: camera.filter };
+    const to = tstr(destino);
+    panEl.getAnimations().forEach((a) => a.cancel());
+    panEl.classList.remove("anim");
+    panEl.style.transform = to;
+    panEl.style.filter = filter;
+    camera.transform = to;
     camera.filter = filter;
-    return table.animate([from, { transform, filter }], { duration: dur(ms), easing: CINE });
+    if (!alvo) Object.assign(vista, destino);
+    return panEl.animate([from, { transform: to, filter }], { duration: dur(ms), easing: CINE });
   }
   function retanguloBase(n) {
     // posição da célula na tela com a câmera em repouso
     const t = tiles.get(n);
+    const r = camera.rest;
     return {
-      left: camera.base.left + t.offsetLeft,
-      top: camera.base.top + t.offsetTop,
-      width: t.offsetWidth,
-      height: t.offsetHeight,
+      left: camera.L0 + r.x + r.s * t.offsetLeft,
+      top: camera.T0 + r.y + r.s * t.offsetTop,
+      width: t.offsetWidth * r.s,
+      height: t.offsetHeight * r.s,
     };
   }
 
@@ -476,31 +617,138 @@
     return `<div class="stat"><div class="k">${rotulo}</div><div class="v"><span data-count="${valor}" data-dec="${casas}">0</span><small>${unidade}</small></div>${b}</div>`;
   }
 
+  const METAIS = new Set(["alcalino", "alcalinoterroso", "transicao", "postransicao", "lantanideo", "actinideo"]);
+  const radioativo = (el) => el.n === 43 || el.n === 61 || el.n >= 84;
+  const sintetico = (el) => el.n === 43 || el.n === 61 || el.n >= 95;
+
+  function chipsHTML(el) {
+    const tipo = METAIS.has(el.c) ? "Metal" : el.c === "semimetal" ? "Semimetal" : "Não metal";
+    const grupo = el.g ? `Grupo ${el.g}` : el.c === "lantanideo" ? "Lantanídeo" : "Actinídeo";
+    const fase = ESTADOS[el.f].nome + (el.n >= 104 ? " (previsto)" : "");
+    const itens = [[fase], [tipo], [grupo], [`Período ${el.p}`], [`Bloco ${el.b}`]];
+    if (radioativo(el)) itens.push(["Radioativo", "alerta"]);
+    if (sintetico(el)) itens.push(["Sintético", "alerta"]);
+    return itens.map(([t, k]) => `<span class="tag ${k || ""}">${t}</span>`).join("");
+  }
+
+  // Posição do elemento na tabela, em miniatura
+  function minimapaHTML(el) {
+    const C = 10, G = 1.6, P = C + G;
+    const py = (y) => (y <= 7 ? y - 1 : y - 1.6) * P;
+    const cel = elementos
+      .map((e) => {
+        const igual = e.x === el.x && e.y === el.y;
+        const guia = !igual && (e.x === el.x || e.y === el.y);
+        const cor = CATEGORIAS[e.c].cor;
+        const o = igual ? 1 : guia ? 0.55 : 0.2;
+        return `<rect x="${(e.x - 1) * P}" y="${py(e.y)}" width="${C}" height="${C}" rx="2.2" fill="${cor}" opacity="${o}"${igual ? ' stroke="#fff" stroke-width="1.6"' : ""}/>`;
+      })
+      .join("");
+    return `<svg class="minimap" viewBox="0 0 ${18 * P} ${9.4 * P}" role="img" aria-label="Posição de ${el.nome} na tabela periódica">${cel}</svg>`;
+  }
+
+  // Gráfico: a propriedade ao longo de toda a tabela, com o elemento em destaque
+  const PROPS = [
+    { k: "en", nome: "Eletronegatividade", un: "", dec: 2 },
+    { k: "r", nome: "Raio atômico", un: "pm", dec: 0 },
+    { k: "ie", nome: "Ionização", un: "kJ/mol", dec: 0 },
+    { k: "d", nome: "Densidade", un: "g/cm³", dec: 3, log: true },
+    { k: "mp", nome: "Fusão", un: "°C", dec: 0 },
+  ];
+  function valorProp(e, p) {
+    let v = e[p.k];
+    if (v == null) return null;
+    if (p.k === "d" && e.f === "g") v /= 1000; // gases vêm em g/L
+    if (p.k === "mp") v = celsius(v);
+    return v;
+  }
+  function graficoHTML(el, pi) {
+    const p = PROPS[pi];
+    const W = 360, H = 132, L = 8, R = 8, T = 22, B = 20;
+    const pts = elementos.map((e) => ({ e, v: valorProp(e, p) })).filter((d) => d.v != null && (!p.log || d.v > 0));
+    const f = (v) => (p.log ? Math.log10(v) : v);
+    const vs = pts.map((d) => f(d.v));
+    const lo = Math.min(...vs), hi = Math.max(...vs);
+    const X = (n) => L + ((n - 1) / 117) * (W - L - R);
+    const Y = (v) => T + (1 - (f(v) - lo) / (hi - lo || 1)) * (H - T - B);
+    const atual = valorProp(el, p);
+
+    const guias = [2, 10, 18, 36, 54, 86]
+      .map((n) => `<line x1="${X(n) + 1.4}" x2="${X(n) + 1.4}" y1="${T - 6}" y2="${H - B}" class="g"/>`)
+      .join("");
+    let linha = "";
+    let aberto = false;
+    for (let n = 1; n <= 118; n++) {
+      const d = pts.find((q) => q.e.n === n);
+      if (!d) { aberto = false; continue; }
+      linha += `${aberto ? "L" : "M"}${X(n).toFixed(1)},${Y(d.v).toFixed(1)}`;
+      aberto = true;
+    }
+    const pontos = pts
+      .map((d) => `<circle cx="${X(d.e.n).toFixed(1)}" cy="${Y(d.v).toFixed(1)}" r="1.9" fill="${CATEGORIAS[d.e.c].cor}"/>`)
+      .join("");
+    let destaque = "";
+    let resumo = `<span class="vazio">Sem dados medidos para este elemento.</span>`;
+    if (atual != null && (!p.log || atual > 0)) {
+      const x = X(el.n), y = Y(atual);
+      const rank = pts.filter((d) => d.v > atual).length + 1;
+      const txt = `${fmt(atual, p.dec)}${p.un ? " " + p.un : ""}`;
+      const ancora = x > W - 70 ? "end" : x < 70 ? "start" : "middle";
+      destaque = `
+        <line x1="${x}" x2="${x}" y1="${y}" y2="${H - B}" class="guia"/>
+        <circle cx="${x}" cy="${y}" r="9" class="halo"/>
+        <circle cx="${x}" cy="${y}" r="4.6" fill="#fff" stroke="${CATEGORIAS[el.c].cor}" stroke-width="2.2"/>
+        <text x="${x}" y="${Math.max(y - 12, 12)}" text-anchor="${ancora}" class="val">${txt}</text>`;
+      resumo = `<b>${rank}º maior valor</b> entre ${pts.length} elementos com dados`;
+    }
+    return `
+      <svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${p.nome} de todos os elementos, com ${el.nome} em destaque">
+        ${guias}
+        <path d="${linha}" class="linha"/>
+        ${pontos}${destaque}
+        <text x="${L}" y="${H - 4}" class="eixo">1</text>
+        <text x="${W / 2}" y="${H - 4}" text-anchor="middle" class="eixo">número atômico</text>
+        <text x="${W - R}" y="${H - 4}" text-anchor="end" class="eixo">118</text>
+      </svg>
+      <div class="chart-nota">${resumo}</div>`;
+  }
+
   function renderPaineis(el) {
+    pararSim();
     const cat = CATEGORIAS[el.c];
-    const fase = ESTADOS[el.f].nome + (el.n > 99 && el.mp == null ? " (previsto)" : "");
-    const grupo = el.g ? `Grupo ${el.g}` : el.c === "lantanideo" ? "Série dos lantanídeos" : "Série dos actinídeos";
     const unidDens = el.f === "g" ? "g/L" : "g/cm³";
     const camadas = el.sh.map((n, i) => `<span>${n}<small>${CAMADAS[i]}</small></span>`).join("");
+    const abas = PROPS.map((p, i) => `<button type="button" data-prop="${i}" class="${i === 0 ? "on" : ""}">${p.nome}</button>`).join("");
+    const temSim = el.mp != null;
     panels.innerHTML = `
       <div class="panel p-title">
-        <div class="eyebrow">${cat.nome}</div>
-        <h2 id="d-name">${el.nome}</h2>
-        <div class="sub">Número atômico ${el.n} · Período ${el.p} · ${grupo} · Bloco ${el.b}</div>
+        <div class="pt-main">
+          <div class="eyebrow">${cat.nome}</div>
+          <h2 id="d-name">${el.nome}</h2>
+          <div class="sub">Número atômico ${el.n} · ${fmt(el.m, 3)} u</div>
+        </div>
+        ${minimapaHTML(el)}
+        <div class="tags">${chipsHTML(el)}</div>
       </div>
       <div class="panel glass">
         <h3>${icone("prop")}Propriedades</h3>
         <div class="stats">
           ${stat("Massa atômica", el.m, 3, "u")}
-          ${stat("Estado a 25 °C", null)}
           ${stat("Densidade", el.d, el.d < 10 ? 3 : 2, unidDens, el.d != null && el.f !== "g" ? el.d / 22.6 : null)}
           ${stat("Eletronegatividade", el.en, 2, "Pauling", el.en != null ? el.en / 4 : null)}
+          ${stat("Raio atômico", el.r, 0, "pm", el.r != null ? el.r / 300 : null)}
           ${stat("Fusão", el.mp != null ? celsius(el.mp) : null, 1, "°C")}
           ${stat("Ebulição", el.bp != null ? celsius(el.bp) : null, 1, "°C")}
           ${stat("1ª energia de ionização", el.ie, 1, "kJ/mol", el.ie != null ? el.ie / 2400 : null)}
-          ${stat("Raio atômico", el.r, 0, "pm", el.r != null ? el.r / 300 : null)}
+          ${stat("Camadas de elétrons", el.sh.length, 0, "")}
         </div>
       </div>
+      <div class="panel glass cmp">
+        <h3>${icone("prop")}Comparado com todos os elementos</h3>
+        <div class="abas" role="tablist">${abas}</div>
+        <div class="chart-box" id="chart-box">${graficoHTML(el, 0)}</div>
+      </div>
+      ${temSim ? simHTML(el) : ""}
       <div class="panel glass">
         <h3>${icone("atom")}Configuração eletrônica</h3>
         <div class="cfg">${configHTML(el.cfg)}</div>
@@ -523,10 +771,147 @@
         <h3>${icone("star")}Você sabia?</h3>
         <p>${esc(el.curiosidade)}</p>
       </div>`;
-    // o estado físico é texto, não número
-    const estadoStat = panels.querySelectorAll(".stat")[1];
-    $(".v", estadoStat).textContent = fase;
+    $("#hud").innerHTML = `
+      <div><b>${el.n}</b><span>Prótons</span></div>
+      <div><b>${el.n}</b><span>Elétrons</span></div>
+      <div><b>~${Math.max(Math.round(el.m) - el.n, 0)}</b><span>Nêutrons</span></div>`;
     panels.scrollTop = 0;
+    iniciarSim(el);
+  }
+
+  panels.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-prop]");
+    if (!b) return;
+    panels.querySelectorAll(".abas button").forEach((x) => x.classList.toggle("on", x === b));
+    const box = $("#chart-box");
+    box.innerHTML = graficoHTML(elementos[det.n - 1], +b.dataset.prop);
+    box.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: dur(350), easing: OUT });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Simulador: o mesmo elemento em outra temperatura
+  // ---------------------------------------------------------------------------
+  const sim = { raf: 0, el: null, cv: null, ctx: null, p: [], T: 298, w: 0, h: 0, max: 1000 };
+
+  function simHTML(el) {
+    const fim = el.bp != null ? el.bp * 1.25 : el.mp * 2;
+    const max = Math.max(Math.ceil(fim / 10) * 10, 20);
+    const pct = (k) => (k == null ? 100 : clamp((k / max) * 100, 0, 100));
+    return `
+      <div class="panel glass simbox">
+        <h3>${icone("prop")}E se a temperatura mudasse?</h3>
+        <div class="sim-top"><span class="fase s" id="sim-fase">Sólido</span><output id="sim-T"></output></div>
+        <canvas id="sim-cv" aria-hidden="true"></canvas>
+        <input type="range" id="sim-range" min="0" max="${max}" step="${max / 500}" value="${Math.min(298, max)}"
+          style="--mp:${pct(el.mp)}%; --bp:${pct(el.bp)}%" aria-label="Temperatura em kelvin">
+        <div class="sim-marks"><span>Funde a ${fmt(celsius(el.mp), 0)} °C</span><span>${el.bp != null ? `Ferve a ${fmt(celsius(el.bp), 0)} °C` : "Ebulição sem dados"}</span></div>
+      </div>`;
+  }
+
+  function fasePorT(el, T) {
+    return T < el.mp ? "s" : el.bp == null || T < el.bp ? "l" : "g";
+  }
+
+  function iniciarSim(el) {
+    const cv = $("#sim-cv");
+    if (!cv) return;
+    const range = $("#sim-range");
+    sim.el = el;
+    sim.cv = cv;
+    sim.ctx = cv.getContext("2d");
+    sim.max = +range.max;
+    sim.T = +range.value;
+    sim.cor = hexRgb(CATEGORIAS[el.c].cor);
+    dimensionarSim();
+    const N = 40;
+    const cols = 10;
+    sim.p = Array.from({ length: N }, (_, i) => {
+      const hx = ((i % cols) + 0.5) / cols;
+      const hy = (Math.floor(i / cols) + 0.5) / Math.ceil(N / cols);
+      return { hx, hy, x: hx * sim.w, y: hy * sim.h, vx: 0, vy: 0 };
+    });
+    atualizarSimTexto();
+    range.addEventListener("input", () => {
+      sim.T = +range.value;
+      atualizarSimTexto();
+      if (reduzMovimento) { for (let k = 0; k < 40; k++) passoSim(); desenharSim(); }
+    });
+    if (reduzMovimento) { for (let k = 0; k < 40; k++) passoSim(); desenharSim(); return; }
+    sim.raf = requestAnimationFrame(loopSim);
+  }
+  function pararSim() {
+    cancelAnimationFrame(sim.raf);
+    sim.raf = 0;
+  }
+  function dimensionarSim() {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    sim.w = sim.cv.clientWidth || 300;
+    sim.h = sim.cv.clientHeight || 110;
+    sim.cv.width = sim.w * dpr;
+    sim.cv.height = sim.h * dpr;
+    sim.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function atualizarSimTexto() {
+    const el = sim.el;
+    const f = fasePorT(el, sim.T);
+    const tag = $("#sim-fase");
+    tag.textContent = ESTADOS[f].nome;
+    tag.className = "fase " + f;
+    $("#sim-T").textContent = `${fmt(sim.T, sim.T < 20 ? 1 : 0)} K · ${fmt(celsius(sim.T), sim.T < 20 ? 1 : 0)} °C`;
+  }
+  function passoSim() {
+    const { el, w, h, T } = sim;
+    const f = fasePorT(el, T);
+    const alvoV = f === "g" ? 1.5 + 2.4 * Math.min(1, T / ((el.bp || T) * 1.6)) : f === "l" ? 0.9 + 0.9 * Math.min(1, (T - el.mp) / ((el.bp || el.mp * 2) - el.mp)) : 0;
+    for (const q of sim.p) {
+      if (f === "s") {
+        const k = 0.06;
+        const tremor = 0.05 + 0.6 * Math.min(1, T / el.mp);
+        q.vx += (q.hx * w - q.x) * k + (Math.random() - 0.5) * tremor;
+        q.vy += (q.hy * h - q.y) * k + (Math.random() - 0.5) * tremor;
+        q.vx *= 0.82;
+        q.vy *= 0.82;
+      } else {
+        if (f === "l" && q.y < h * 0.4) q.vy += 0.1; // o líquido se acomoda embaixo
+        q.vx += (Math.random() - 0.5) * 0.25;
+        q.vy += (Math.random() - 0.5) * 0.25;
+        const v = Math.hypot(q.vx, q.vy) || 0.01;
+        const m = 1 + 0.08 * (alvoV / v - 1);
+        q.vx *= m;
+        q.vy *= m;
+      }
+      q.x += q.vx;
+      q.y += q.vy;
+      if (q.x < 4) { q.x = 4; q.vx = Math.abs(q.vx); }
+      if (q.x > w - 4) { q.x = w - 4; q.vx = -Math.abs(q.vx); }
+      if (q.y < 4) { q.y = 4; q.vy = Math.abs(q.vy); }
+      if (q.y > h - 4) { q.y = h - 4; q.vy = -Math.abs(q.vy); }
+    }
+  }
+  function desenharSim() {
+    const { ctx, w, h } = sim;
+    const [r, g, b] = sim.cor;
+    ctx.clearRect(0, 0, w, h);
+    ctx.globalCompositeOperation = "lighter";
+    const f = fasePorT(sim.el, sim.T);
+    const rad = f === "s" ? 4.2 : f === "l" ? 4 : 3.2;
+    for (const q of sim.p) {
+      const gr = ctx.createRadialGradient(q.x, q.y, 0, q.x, q.y, rad * 2.6);
+      gr.addColorStop(0, "rgba(255,255,255,0.95)");
+      gr.addColorStop(0.3, `rgba(${r},${g},${b},0.85)`);
+      gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      ctx.fillStyle = gr;
+      ctx.beginPath();
+      ctx.arc(q.x, q.y, rad * 2.6, 0, 6.2832);
+      ctx.fill();
+    }
+    ctx.globalCompositeOperation = "source-over";
+  }
+  function loopSim() {
+    if (!sim.cv || !sim.cv.isConnected) return;
+    sim.raf = requestAnimationFrame(loopSim);
+    passoSim();
+    desenharSim();
   }
 
   function animarPaineis(atraso) {
@@ -560,7 +945,7 @@
   }
 
   function letterbox(abrir, ms) {
-    const h = innerWidth < 860 ? "4vh" : "7vh";
+    const h = getComputedStyle(detail).getPropertyValue("--lb").trim() || "7vh";
     bars.forEach((b) => {
       b.animate([{ height: abrir ? "0px" : h }, { height: abrir ? h : "0px" }], { duration: dur(ms), easing: CINE, fill: "forwards" });
     });
@@ -577,7 +962,7 @@
     const cor = CATEGORIAS[el.c].cor;
 
     // retrato da tabela em repouso, antes de mover a câmera
-    camera.base = { left: table.getBoundingClientRect().left, top: table.getBoundingClientRect().top };
+    fixarRepouso();
     const from = tile.getBoundingClientRect();
 
     detail.style.setProperty("--c", cor);
@@ -740,6 +1125,7 @@
     det.hero.remove();
     det.hero = null;
     pararAtomo();
+    pararSim();
     detail.classList.remove("open");
     detail.setAttribute("aria-hidden", "true");
     det.aberto = false;
@@ -762,9 +1148,14 @@
 
   document.addEventListener("keydown", (e) => {
     if (det.aberto) {
-      if (e.key === "Escape") fecharDetalhe();
+      if (e.key === "r" || e.key === "R") aleatorio();
+      else if (e.key === "Escape") fecharDetalhe();
       else if (e.key === "ArrowRight") passo(1);
       else if (e.key === "ArrowLeft") passo(-1);
+      return;
+    }
+    if ((e.key === "r" || e.key === "R") && document.activeElement !== search && !e.metaKey && !e.ctrlKey) {
+      aleatorio();
       return;
     }
     if (e.key === "/" && document.activeElement !== search) {
@@ -775,16 +1166,21 @@
 
   // Deslizar no celular para navegar
   let toqueX = null;
-  detail.addEventListener("touchstart", (e) => (toqueX = e.touches[0].clientX), { passive: true });
+  let toqueY = null;
+  detail.addEventListener("touchstart", (e) => { toqueX = e.touches[0].clientX; toqueY = e.touches[0].clientY; }, { passive: true });
   detail.addEventListener("touchend", (e) => {
     if (toqueX == null) return;
     const dx = e.changedTouches[0].clientX - toqueX;
-    if (Math.abs(dx) > 60) passo(dx < 0 ? 1 : -1);
+    const dy = e.changedTouches[0].clientY - toqueY;
+    // só conta como "passar de elemento" se for um gesto bem horizontal
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6 && !e.target.closest(".chart-box, input")) passo(dx < 0 ? 1 : -1);
     toqueX = null;
   });
 
   addEventListener("resize", () => {
     moverPill();
+    ajustarVista();
+    if (det.aberto && sim.cv) dimensionarSim();
     if (det.aberto && det.hero && !det.ocupado) {
       const s = slotRect();
       posicionarHero(det.hero, s.size);
@@ -844,7 +1240,7 @@
 
     // halo do núcleo
     const halo = actx.createRadialGradient(c, c, 0, c, c, R * 0.42);
-    halo.addColorStop(0, rgba(0.35));
+    halo.addColorStop(0, rgba(0.2));
     halo.addColorStop(1, rgba(0));
     actx.fillStyle = halo;
     actx.fillRect(0, 0, L, L);
@@ -967,6 +1363,62 @@
     }
   }
 
+  // Elemento do dia: o mesmo para todo mundo, muda à meia-noite
+  const diario = $("#daily");
+  const hoje = elementos[Math.floor(Date.now() / 864e5 - new Date().getTimezoneOffset() / 1440) % 118];
+  diario.style.setProperty("--c", CATEGORIAS[hoje.c].cor);
+  diario.innerHTML = `
+    <span class="dl-tile"><b>${hoje.s}</b><i>${hoje.n}</i></span>
+    <span class="dl-body"><small>Elemento do dia</small><strong>${hoje.nome}</strong><span class="dl-txt">${esc(hoje.curiosidade)}</span></span>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>`;
+  diario.addEventListener("click", () => abrirDetalhe(hoje.n));
+
+  // ---------------------------------------------------------------------------
+  // Extras: aleatório, compartilhar, aviso, brilho ambiente
+  // ---------------------------------------------------------------------------
+  const toast = $("#toast");
+  let toastT = 0;
+  function avisar(msg) {
+    toast.textContent = msg;
+    toast.classList.add("on");
+    clearTimeout(toastT);
+    toastT = setTimeout(() => toast.classList.remove("on"), 2200);
+  }
+
+  function aleatorio() {
+    const lista = elementos.filter((e) => !document.querySelector(`.el[data-n="${e.n}"].dim`));
+    const e = lista[Math.floor(Math.random() * lista.length)] || elementos[0];
+    if (det.aberto) navegar(e.n);
+    else abrirDetalhe(e.n);
+  }
+  $("#random").addEventListener("click", aleatorio);
+
+  $("#d-share").addEventListener("click", async () => {
+    const el = elementos[det.n - 1];
+    const url = `${location.origin}${location.pathname}#${el.s}`;
+    try {
+      if (navigator.share && toque.matches) await navigator.share({ title: `${el.nome} (${el.s})`, text: `${el.nome}, elemento ${el.n} da tabela periódica`, url });
+      else { await navigator.clipboard.writeText(url); avisar(`Link de ${el.nome} copiado`); }
+    } catch {
+      /* cancelou o compartilhamento */
+    }
+  });
+
+  // um brilho com a cor da categoria acompanha o cursor
+  const ambient = $("#ambient");
+  if (!toque.matches) {
+    table.addEventListener("pointerover", (e) => {
+      const t = e.target.closest(".el[data-n]");
+      if (!t || det.aberto) return;
+      const r = t.getBoundingClientRect();
+      ambient.style.setProperty("--ax", `${r.left + r.width / 2}px`);
+      ambient.style.setProperty("--ay", `${r.top + r.height / 2}px`);
+      ambient.style.setProperty("--ac", corDe(elementos[t.dataset.n - 1]));
+      ambient.classList.add("on");
+    });
+    table.addEventListener("pointerleave", () => ambient.classList.remove("on"));
+  }
+
   // ---------------------------------------------------------------------------
   // Início
   // ---------------------------------------------------------------------------
@@ -974,6 +1426,8 @@
   montarLegenda();
   aplicarModo();
   atualizarPreview(elementos[0]);
+  ajustarVista();
+  toque.addEventListener?.("change", () => ajustarVista());
   redimensionarFundo();
   addEventListener("resize", redimensionarFundo);
   requestAnimationFrame(desenharFundo);
