@@ -167,7 +167,7 @@
       caixa.appendChild(wrap);
       wrap.innerHTML = `<div class="est-head"><div><h3>${cfg.nome}</h3><p>${cfg.sub}</p></div></div>`;
       const opcoes = el("details", "est-opc");
-      opcoes.innerHTML = `<summary>Opções${cfg.opcoesTitulo ? ": " + cfg.opcoesTitulo : ""}</summary>`;
+      opcoes.innerHTML = `<summary>Opções: ${cfg.opcoesTitulo || "modo guiado"}</summary>`;
       const segGuia = ui.segmentado({ itens: [{ id: "t", rotulo: "Tudo de uma vez" }, { id: "g", rotulo: "Passo a passo guiado" }], valor: guiado ? "g" : "t", onChange: (id) => { guiado = id === "g"; repintarPassos(); } });
       const api = { reabrir: () => abrir(ferrAtual.def.id), recalcular: () => ferrAtual && ferrAtual.api && ferrAtual.api.recalcular && ferrAtual.api.recalcular(), modo: () => modo };
       (cfg.opcoes ? cfg.opcoes(api) : []).forEach((x) => opcoes.appendChild(x));
