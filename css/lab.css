@@ -448,3 +448,5 @@ select.sel { height: 46px; width: 100%; margin: 0; padding: 0 12px; border-radiu
 .area-dados { width: 100%; min-height: 130px; padding: 12px 14px; border-radius: 8px; resize: vertical; background: var(--bg); border: 1px solid var(--line); color: var(--text); font: 500 15px/1.55 var(--f-mono); outline: 0; }
 .area-dados:focus { border-color: var(--m-c); box-shadow: 0 0 0 1px var(--m-c); }
 .area-dados::placeholder { color: var(--faint); }
+.teclado-rola { overflow-x: auto; scrollbar-width: none; }
+.teclado-rola button { flex: none; padding: 0 10px; font-size: 15px; }
