@@ -763,7 +763,8 @@ body.cinema .zoomctl, body.cinema .daily, body.cinema .m-hint, body.cinema .hubs
   transition: border-color 0.2s, background 0.2s;
 }
 .guia-card:hover { border-color: var(--muted); background: var(--panel-3); }
-.guia-card b { font: 700 17px/1.2 var(--f-ui); }
+.guia-card > b { font: 700 17px/1.2 var(--f-ui); }
+.guia-card strong { font-weight: 600; color: var(--text); }
 .guia-card span { font-size: 13.5px; line-height: 1.55; color: var(--muted); }
 .guia-card em { margin-top: auto; padding-top: 6px; font: 600 13px var(--f-ui); font-style: normal; color: var(--text); }
 .guia-n { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 6px; font: 600 14px var(--f-mono); font-style: normal; background: var(--text); color: var(--bg); }

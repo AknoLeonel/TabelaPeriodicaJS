@@ -92,7 +92,7 @@
   // 2. Equações iônicas
   // =====================================================================
   FERR.push({
-    id: "ionica", nome: "Iônicas",
+    id: "ionica", nome: "Iônicas", prat: "ionica",
     resumo: "Reações em solução aquosa (dupla troca, neutralização, precipitação): produtos, equação molecular, iônica completa e iônica simplificada.",
     teoria: `<p>Em água, sais solúveis, ácidos fortes e bases fortes ficam <b>separados em íons</b>. Uma reação só acontece de verdade se algo “sai” da solução:</p>
       <ul><li>um <b>precipitado</b> (sólido insolúvel, ex.: AgCl);</li><li>um <b>gás</b> (CO₂, H₂S, NH₃);</li><li><b>água</b> ou outro eletrólito fraco (neutralização).</li></ul>

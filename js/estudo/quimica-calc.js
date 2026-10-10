@@ -617,7 +617,7 @@
       <tr><td>n (nível)</td><td><b>${q.n}</b></td></tr><tr><td>ℓ (subnível ${ult.sub[1]})</td><td><b>${q.l}</b></td></tr>
       <tr><td>mℓ (orbital)</td><td><b>${q.ml}</b></td></tr><tr><td>mₛ (spin)</td><td><b>${q.ms}</b></td></tr></tbody></table></div><small class="dica">Convenção usada: orbitais do menor mℓ para o maior, primeiro elétron com spin +½.${excecao ? " Em elementos exceção, o resultado pode diferir do esperado pelo diagrama." : ""}</small>`));
     const d = el.d;
-    return { ok: true, el, passos, config: confTxt(mostra), excecao, valencia: val, resposta: mostra.map((s) => s.sub + supTxt(s.e)).join(" "), grupo: d.g, periodo: d.p, bloco: d.b };
+    return { ok: true, el, passos, config: confTxt(mostra), excecao, valencia: val, camadas, resposta: mostra.map((s) => s.sub + supTxt(s.e)).join(" "), grupo: d.g, periodo: d.p, bloco: d.b };
   }
 
   // ---------------------------------------------------------------------------
@@ -664,10 +664,73 @@
       const r = passosDiluicao({ C1, V1, C2: null, V2 });
       return { enunciado: `<b>${num(V1)} mL</b> de uma solução <b>${num(C1)} mol/L</b> são diluídos com água até <b>${num(V2)} mL</b>. Qual a nova concentração?`, resposta: r.valor, rel: 0.02, unidade: "mol/L", passos: r.passos, texto: r.resposta };
     }
+    if (tipo === "esteq") {
+      // [equação, índice do dado, índice do pedido]
+      const CASOS = [["H2 + O2 -> H2O", 0, 2], ["N2 + H2 -> NH3", 1, 2], ["CH4 + O2 -> CO2 + H2O", 0, 2], ["C3H8 + O2 -> CO2 + H2O", 0, 3], ["Fe2O3 + CO -> Fe + CO2", 0, 2], ["CaCO3 -> CaO + CO2", 0, 2], ["Zn + HCl -> ZnCl2 + H2", 0, 3], ["Mg + O2 -> MgO", 0, 2], ["NaOH + HCl -> NaCl + H2O", 0, 2], ["Al + O2 -> Al2O3", 0, 2], ["C6H12O6 + O2 -> CO2 + H2O", 0, 2], ["KClO3 -> KCl + O2", 0, 2], ["Na + Cl2 -> NaCl", 0, 2], ["C2H5OH + O2 -> CO2 + H2O", 0, 2]];
+      const [eqTxt, iDado, iPed] = sorteia(CASOS);
+      const b = balancear(eqTxt);
+      const sp = b.especies;
+      const eqHTML = `<div class="eq"><b>${textoEquacao(b)}</b></div>`;
+      const dois = b.nReag === 2;
+      const modo = sorteia(dois ? ["massa", "massa", "mol", "limitante", "limitante"] : ["massa", "mol"]);
+      const M = sp.map((e) => massaMolar(e.p).total);
+      if (modo === "limitante") {
+        // um reagente em excesso de 20% a 80%, o outro limita
+        const lim = inteiro(0, 1), exc = 1 - lim;
+        const xi = [0.05, 0.1, 0.2, 0.25, 0.5, 1][inteiro(0, 5)] * inteiro(1, 4);
+        const nLim = b.coef[lim] * xi, nExc = b.coef[exc] * xi * (1.2 + Math.random() * 0.6);
+        const mLim = +(nLim * M[lim]).toPrecision(3), mExc = +(nExc * M[exc]).toPrecision(3);
+        const r = passosEstequiometria(eqTxt, [{ i: lim, valor: mLim, un: "g" }, { i: exc, valor: mExc, un: "g" }]);
+        const alvo = r.prod[iPed];
+        const mm = []; mm[lim] = mLim; mm[exc] = mExc;
+        return { enunciado: `Misturam-se <b>${num(mm[0])} g</b> de <b>${fq(sp[0].f)}</b> e <b>${num(mm[1])} g</b> de <b>${fq(sp[1].f)}</b>.${eqHTML}Qual a massa de <b>${fq(sp[iPed].f)}</b> formada? <small>(Descubra antes o reagente limitante.)</small>`, resposta: alvo.massa, rel: 0.02, unidade: "g", passos: r.passos, texto: `${num(alvo.massa)} g (limitante: ${sp[r.limite].f})` };
+      }
+      const m = +((inteiro(1, 9) * Math.pow(10, inteiro(0, 2))) * (Math.random() < 0.5 ? 1 : 0.5)).toPrecision(3);
+      const r = passosEstequiometria(eqTxt, [{ i: iDado, valor: m, un: "g" }]);
+      const alvo = r.prod[iPed];
+      const papel = iPed < b.nReag ? "é consumida" : "se forma";
+      if (modo === "mol") return { enunciado: `Reagem <b>${num(m)} g</b> de <b>${fq(sp[iDado].f)}</b> (o outro reagente em quantidade suficiente).${eqHTML}Quantos mols de <b>${fq(sp[iPed].f)}</b> ${papel === "se forma" ? "se formam" : "são consumidos"}?`, resposta: alvo.mol, rel: 0.02, unidade: "mol", passos: r.passos, texto: `${num(alvo.mol)} mol` };
+      return { enunciado: `Reagem <b>${num(m)} g</b> de <b>${fq(sp[iDado].f)}</b>${dois ? " (o outro reagente em quantidade suficiente)" : ""}.${eqHTML}Que massa de <b>${fq(sp[iPed].f)}</b> ${papel}?`, resposta: alvo.massa, rel: 0.02, unidade: "g", passos: r.passos, texto: `${num(alvo.massa)} g` };
+    }
+    if (tipo === "eletrons") {
+      const DADOS = raiz.DADOS || [];
+      const Zs = [3, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21, 25, 26, 30, 33, 34, 35, 38, 53, 56];
+      const Z = sorteia(Zs), nome = elementos()[DADOS[Z - 1].s].nome, sim = DADOS[Z - 1].s;
+      const modo = sorteia(["valencia", "camada", "ion", "subnivel"]);
+      if (modo === "ion") {
+        const IONS = [[11, 1], [12, 2], [13, 3], [19, 1], [20, 2], [26, 2], [26, 3], [29, 2], [8, -2], [9, -1], [16, -2], [17, -1], [7, -3], [35, -1], [30, 2]];
+        const [z, q] = sorteia(IONS), s2 = DADOS[z - 1].s;
+        const r = passosEletronica(z, q);
+        const qTxt = `${Math.abs(q) > 1 ? Math.abs(q) : ""}${q > 0 ? "+" : "−"}`;
+        return { enunciado: `Quantos elétrons tem o íon <b>${s2}<sup>${qTxt}</sup></b> (Z = ${z})?`, resposta: z - q, tol: 0, unidade: "elétrons", passos: r.passos, texto: `${z - q} elétrons (${r.resposta})` };
+      }
+      const r = passosEletronica(Z, 0);
+      if (modo === "valencia") return { enunciado: `Quantos elétrons há na <b>camada de valência</b> do ${nome} (<b>${sim}</b>, Z = ${Z})?`, resposta: r.valencia, tol: 0, unidade: "elétrons", passos: r.passos, texto: `${r.valencia} (${r.resposta})` };
+      if (modo === "camada") {
+        const ns = Object.keys(r.camadas).map(Number).filter((n) => n >= 2);
+        const n = sorteia(ns.length ? ns : [1]);
+        return { enunciado: `Quantos elétrons o ${nome} (<b>${sim}</b>, Z = ${Z}) tem na camada <b>${"KLMNOPQ"[n - 1]}</b> (n = ${n})?`, resposta: r.camadas[n], tol: 0, unidade: "elétrons", passos: r.passos, texto: `${r.camadas[n]} (${r.resposta})` };
+      }
+      // subnível mais energético (último pelo diagrama de Pauling): múltipla escolha
+      const nv = aufbau(Z), ult = nv[nv.length - 1];
+      const certo = `${ult.sub}${supTxt(ult.e)}`;
+      const outros = new Set();
+      const vizinhos = ORDEM.filter((x) => x !== ult.sub);
+      while (outros.size < 3) {
+        const sub = sorteia(vizinhos.slice(Math.max(0, ORDEM.indexOf(ult.sub) - 3), ORDEM.indexOf(ult.sub) + 3).concat([ult.sub]));
+        const cap = { s: 2, p: 6, d: 10, f: 14 }[sub[1]];
+        const e = inteiro(1, cap);
+        const t = `${sub}${supTxt(e)}`;
+        if (t !== certo) outros.add(t);
+      }
+      const ops = [certo, ...outros].sort(() => Math.random() - 0.5);
+      return { tipo: "escolha", enunciado: `Pelo diagrama de Pauling, qual é o <b>subnível mais energético</b> do ${nome} (<b>${sim}</b>, Z = ${Z})?`, opcoes: ops.map((o) => `<span class="mono">${o}</span>`), resposta: ops.indexOf(certo), passos: r.passos, texto: certo };
+    }
     return null;
   }
 
   function conferir(ex, texto) {
+    if (ex.tipo === "escolha") return +texto === ex.resposta;
     if (ex.tipo === "lista") {
       const v = String(texto).split(/[,;\s]+/).filter(Boolean).map(Number);
       return v.length === ex.resposta.length && v.every((x, i) => x === ex.resposta[i]);

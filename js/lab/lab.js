@@ -1,6 +1,10 @@
 /*
- * Casca do laboratório: abertura em "portal", navegação entre módulos, selo de
- * fidelidade científica e som.
+ * Casca do laboratório e do estudo: abertura em "portal", navegação entre
+ * módulos, selo de fidelidade científica, som e carregamento sob demanda.
+ *
+ * Cada módulo só é baixado quando alguém o abre. O catálogo abaixo guarda o
+ * mínimo para desenhar a navegação (nome, cor, ícone) e a lista de arquivos;
+ * o arquivo do módulo completa o resto com LAB.modulos.push({ id, criar, nota... }).
  */
 (function () {
   "use strict";
@@ -8,6 +12,71 @@
   const { el } = LAB;
   const raiz = document.getElementById("lab");
   const OUT = "cubic-bezier(0.16, 1, 0.3, 1)";
+
+  const ESTUDO_BASE = ["js/estudo/quimica-calc.js", "js/estudo/base-estudo.js", "js/estudo/grafico.js"];
+  const CATALOGO = [
+    { id: "atomo", grupo: "lab", nome: "Átomo", resumo: "Monte, decaia e divida qualquer átomo", cor: "#38b6ff", icone: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><ellipse cx="12" cy="12" rx="10" ry="4"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-60 12 12)"/></svg>', js: ["js/lab/atomo.js"] },
+    { id: "decaimento", grupo: "lab", nome: "Decaimento", resumo: "Meia-vida e contador Geiger", cor: "#2ee6b6", icone: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.2"/><path d="M12 3a9 9 0 0 1 7.8 4.5L15 10"/><path d="M20.8 15A9 9 0 0 1 12 21l.2-5.5"/><path d="M3.2 15A9 9 0 0 1 4.2 7.5L9 10"/></svg>', js: ["js/lab/decaimento.js"] },
+    { id: "reator", grupo: "lab", nome: "Reator", resumo: "Reação em cadeia de fissão", cor: "#ffb23d", icone: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="2.4"/></svg>', js: ["js/lab/reator.js"] },
+    { id: "estrela", grupo: "lab", nome: "Estrela", resumo: "Fusão nuclear e a curva de energia", cor: "#ff7a45", icone: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>', js: ["js/lab/estrela.js"] },
+    { id: "acelerador", grupo: "lab", nome: "Acelerador", resumo: "Colida partículas e veja o que nasce", cor: "#a46bff", icone: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><path d="M12 3v4.5M12 16.5V21M3 12h4.5M16.5 12H21"/></svg>', js: ["js/lab/acelerador.js"] },
+    {
+      id: "quimica", grupo: "estudo", nome: "Química", resumo: "Resolva passo a passo ou treine com exercícios novos.", cor: "#2ee6b6", icone: '<svg viewBox="0 0 24 24"><path d="M9 3h6"/><path d="M10 3v6.2L4.6 18.3A2 2 0 0 0 6.3 21h11.4a2 2 0 0 0 1.7-2.7L14 9.2V3"/><path d="M7.5 14h9"/></svg>',
+      js: [...ESTUDO_BASE, "js/estudo/quimica-redox-calc.js", "js/estudo/quimica-termo-calc.js", "js/estudo/quimica.js", "js/estudo/quimica-redox.js", "js/estudo/quimica-termo.js"],
+      css: ["css/estudo-quimica-redox.css", "css/estudo-quimica-termo.css"],
+    },
+    { id: "fisica", grupo: "estudo", nome: "Física", resumo: "Resolva passo a passo, com unidades, ou treine com exercícios novos.", cor: "#4da3ff", icone: '<svg viewBox="0 0 24 24"><path d="M4 18c3-9 5-9 8 0s5 9 8 0"/><path d="M3 12h18"/></svg>', js: [...ESTUDO_BASE, "js/estudo/fisica-calc.js", "js/estudo/fisica-estudo.js"] },
+    {
+      id: "matematica", grupo: "estudo", nome: "Matemática", resumo: "A matemática que aparece em química, física e cálculo, passo a passo.", cor: "#f0a23c", icone: '<svg viewBox="0 0 24 24"><path d="M5 5h6M8 2v6"/><path d="M14 5h6"/><path d="M5 16l5 5M10 16l-5 5"/><path d="M14 17h6M14 20h6"/></svg>',
+      js: [...ESTUDO_BASE, "js/estudo/expressao.js", "js/estudo/matematica-calc.js", "js/estudo/matematica.js"], css: ["css/estudo-matematica.css"],
+    },
+    {
+      id: "pesquisa", grupo: "estudo", nome: "Pesquisa", resumo: "Ferramentas para relatórios de laboratório, TCC e iniciação científica.", cor: "#d9648c", icone: '<svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 16l4-5 3 3 5-7"/><circle cx="6" cy="16" r="1"/><circle cx="10" cy="11" r="1"/><circle cx="13" cy="14" r="1"/><circle cx="18" cy="7" r="1"/></svg>',
+      js: [...ESTUDO_BASE, "js/estudo/expressao.js", "js/estudo/pesquisa-calc.js", "js/estudo/pesquisa.js"], css: ["css/estudo-pesquisa.css"],
+    },
+  ];
+
+  // ---------- carregamento sob demanda ----------
+  const scripts = new Map(); // src -> Promise
+  function carregarJS(lista) {
+    // async = false: os arquivos executam na ordem em que foram pedidos
+    return Promise.all(lista.map((src) => {
+      if (!scripts.has(src)) {
+        scripts.set(src, new Promise((ok, falha) => {
+          const sc = document.createElement("script");
+          sc.src = src;
+          sc.async = false;
+          sc.onload = ok;
+          sc.onerror = () => { scripts.delete(src); sc.remove(); falha(new Error("Falha ao carregar " + src)); };
+          document.body.appendChild(sc);
+        }));
+      }
+      return scripts.get(src);
+    }));
+  }
+  function carregarCSS(lista = []) {
+    for (const href of lista) {
+      if (document.querySelector(`link[href="${href}"]`)) continue;
+      const l = document.createElement("link");
+      l.rel = "stylesheet";
+      l.href = href;
+      document.head.appendChild(l);
+    }
+  }
+  const definicao = (id) => LAB.modulos.find((x) => x.id === id);
+  async function garantir(c) {
+    if (definicao(c.id)) return definicao(c.id);
+    carregarCSS(c.css);
+    await carregarJS(c.js);
+    const d = definicao(c.id);
+    if (!d) throw new Error("Módulo não registrado: " + c.id);
+    return d;
+  }
+  // pré-carrega em segundo plano os vizinhos do grupo, sem atrapalhar a interação
+  function preCarregar(g) {
+    const ocioso = window.requestIdleCallback || ((f) => setTimeout(f, 1200));
+    ocioso(() => CATALOGO.filter((c) => c.grupo === g && !definicao(c.id)).forEach((c) => garantir(c).catch(() => {})));
+  }
 
   const IC = {
     voltar: '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
@@ -21,13 +90,15 @@
     <header class="lab-top surf">
       <button class="lab-back" id="lab-back" type="button" aria-label="Voltar para a tabela">${IC.voltar}<span class="txt">Tabela</span></button>
       <div class="lab-titulo"><h2 id="lab-h">Laboratório</h2><p id="lab-p"></p></div>
-      <button class="selo" id="lab-selo" type="button" aria-haspopup="dialog"></button>
-      <button class="lab-ic" id="lab-grupo" type="button"></button>
-      <button class="lab-ic" id="lab-som" type="button" aria-label="Som">${IC.som}</button>
+      <nav class="lab-nav" id="lab-nav" aria-label="Módulos"></nav>
+      <div class="lab-acoes">
+        <button class="selo" id="lab-selo" type="button" aria-haspopup="dialog"></button>
+        <button class="lab-ic" id="lab-grupo" type="button"></button>
+        <button class="lab-ic" id="lab-som" type="button" aria-label="Som">${IC.som}</button>
+      </div>
     </header>
     <div class="lab-pop surf" id="lab-pop" role="dialog" aria-label="O que é real e o que é simplificado"></div>
-    <div class="lab-corpo" id="lab-corpo"></div>
-    <nav class="lab-nav surf" id="lab-nav" aria-label="Módulos do laboratório"></nav>`;
+    <div class="lab-corpo" id="lab-corpo"></div>`;
 
   const $ = (s) => raiz.querySelector(s);
   const corpo = $("#lab-corpo");
@@ -36,72 +107,94 @@
   const selo = $("#lab-selo");
   const somBt = $("#lab-som");
   const grupoBt = $("#lab-grupo");
-  let grupoAtual = "lab";
-  const grupoDe = (m) => m.grupo || "lab";
-  const modulosDoGrupo = (g = grupoAtual) => LAB.modulos.filter((m) => grupoDe(m) === g);
+  let grupoAtual = null;
+  const doGrupo = (g = grupoAtual) => CATALOGO.filter((c) => c.grupo === g);
 
   const telas = new Map(); // id -> { caixa, instancia }
   let atual = null;
+  let pedido = 0; // descarta trocas antigas quando o usuário clica rápido
   let aberto = false;
   let anima = null;
 
   function montarNav() {
     nav.innerHTML = "";
-    for (const m of modulosDoGrupo()) {
-      const b = el("button", m.emBreve ? "breve" : "", `${m.icone}<span>${m.nome}</span>${m.emBreve ? "<em>em breve</em>" : ""}`);
+    for (const c of doGrupo()) {
+      const b = el("button", "", `${c.icone}<span>${c.nome}</span>`);
       b.type = "button";
-      b.dataset.id = m.id;
-      b.style.setProperty("--m-c", m.cor);
-      b.addEventListener("click", () => ativar(m.id));
+      b.dataset.id = c.id;
+      b.style.setProperty("--m-c", c.cor);
+      b.addEventListener("click", () => ativar(c.id));
       nav.appendChild(b);
     }
     const outro = grupoAtual === "lab" ? "estudo" : "lab";
     grupoBt.innerHTML = IC[outro];
-    grupoBt.setAttribute("aria-label", outro === "estudo" ? "Ir para o modo Estudo" : "Ir para o Laboratório");
-    grupoBt.title = outro === "estudo" ? "Estudo (química e física passo a passo)" : "Laboratório (simulações)";
-    nav.classList.toggle("dois", modulosDoGrupo().length <= 3);
+    grupoBt.setAttribute("aria-label", outro === "estudo" ? "Ir para o Estudo" : "Ir para o Laboratório");
+    grupoBt.title = outro === "estudo" ? "Estudo (passo a passo)" : "Laboratório (simulações)";
+    raiz.dataset.grupo = grupoAtual;
   }
 
-  function ativar(id) {
-    const m = LAB.modulos.find((x) => x.id === id) || LAB.modulos[0];
-    if (!m || atual === m.id) return;
-    if (m.emBreve) { LAB.avisar(`${m.nome} chega em breve. Por enquanto, a Química já está pronta.`); return; }
-    if (grupoDe(m) !== grupoAtual || !nav.children.length) { grupoAtual = grupoDe(m); montarNav(); }
-    if (atual) {
-      const t = telas.get(atual);
-      t.instancia.parar();
-      t.caixa.classList.remove("on");
+  function esconderTudo(exceto) {
+    telas.forEach((t, id) => {
+      if (id === exceto) return;
+      if (t.caixa.classList.contains("on")) { t.instancia.parar(); t.caixa.classList.remove("on"); }
+    });
+  }
+
+  // "estudo" e "lab" abrem o último módulo usado daquele grupo
+  const ultimo = (g) => { try { return localStorage.getItem("elementar.ultimo." + g); } catch (e) { return null; } };
+  const lembrar = (c) => { try { localStorage.setItem("elementar.ultimo." + c.grupo, c.id); } catch (e) { /* sem armazenamento */ } };
+
+  async function ativar(id) {
+    if (id === "estudo" || id === "lab") id = ultimo(id) || doGrupo(id)[0].id;
+    const c = CATALOGO.find((x) => x.id === id) || CATALOGO[0];
+    if (atual === c.id && telas.get(c.id)?.caixa.classList.contains("on")) return;
+    const meu = ++pedido;
+    if (c.grupo !== grupoAtual) { grupoAtual = c.grupo; montarNav(); }
+    nav.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.id === c.id));
+    raiz.style.setProperty("--lab-c", c.cor);
+    $("#lab-h").textContent = c.nome;
+    $("#lab-p").textContent = c.resumo;
+    pop.classList.remove("on");
+
+    let m = definicao(c.id);
+    if (!m) {
+      raiz.classList.add("carregando");
+      try { m = await garantir(c); }
+      catch (e) { if (meu === pedido) { raiz.classList.remove("carregando"); LAB.avisar("Não consegui carregar este módulo. Verifique a conexão."); } return; }
+      if (meu !== pedido) return; // o usuário já foi para outro módulo
+      raiz.classList.remove("carregando");
     }
-    let t = telas.get(m.id);
+
+    esconderTudo(c.id);
+    let t = telas.get(c.id);
     if (!t) {
       const caixa = el("div", "mod");
-      caixa.style.setProperty("--m-c", m.cor);
+      caixa.style.setProperty("--m-c", c.cor);
       corpo.appendChild(caixa);
       t = { caixa, instancia: m.criar(caixa) };
-      telas.set(m.id, t);
+      telas.set(c.id, t);
     }
     t.caixa.classList.add("on");
-    atual = m.id;
-    raiz.style.setProperty("--lab-c", m.cor);
-    $("#lab-h").textContent = m.nome;
-    $("#lab-p").textContent = m.resumo;
+    atual = c.id;
+    lembrar(c);
     const s = LAB.selos[m.selo] || LAB.selos.parcial;
     selo.className = "selo " + s.cls;
-    selo.textContent = s.texto;
-    pop.classList.remove("on");
+    selo.innerHTML = `<span>${s.texto}</span>`;
     pop.innerHTML = `
       <h5 class="r">O que é real aqui</h5><ul>${m.nota.real.map((x) => `<li>${x}</li>`).join("")}</ul>
       <h5 class="s">O que é simplificado</h5><ul>${m.nota.simplificado.map((x) => `<li>${x}</li>`).join("")}</ul>`;
-    nav.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.id === m.id));
-    t.instancia.iniciar();
-    if (aberto) history.replaceState(null, "", `#${grupoDe(m) === "estudo" ? "estudo" : "lab"}/${m.id}`);
+    if (aberto) {
+      history.replaceState(null, "", `#${c.grupo}/${c.id}`);
+      t.instancia.iniciar();
+      preCarregar(c.grupo);
+    }
   }
 
   function abrir(id = "atomo", origem) {
     const jaAberto = aberto;
     aberto = true;
-    ativar(id);
-    if (jaAberto) return;
+    const pronto = ativar(id);
+    if (jaAberto) return pronto;
     raiz.classList.add("on");
     raiz.setAttribute("aria-hidden", "false");
     const x = origem ? origem.x : innerWidth / 2;
@@ -113,47 +206,43 @@
     } else {
       anima = raiz.animate(
         [{ clipPath: `circle(0px at ${x}px ${y}px)` }, { clipPath: `circle(${r}px at ${x}px ${y}px)` }],
-        { duration: 700, easing: OUT }
+        { duration: 600, easing: OUT }
       );
       anima.finished.then(() => { if (aberto) document.body.classList.add("lab-open"); }).catch(() => {});
     }
-    history.replaceState(null, "", `#${atual && LAB.modulos.find((x) => x.id === atual) && grupoDe(LAB.modulos.find((x) => x.id === atual)) === "estudo" ? "estudo" : "lab"}/${atual}`);
+    return pronto;
   }
 
   function fechar() {
     if (!aberto) return;
     aberto = false;
+    pedido++;
     pop.classList.remove("on");
+    raiz.classList.remove("carregando");
     document.body.classList.remove("lab-open");
-    const t = telas.get(atual);
-    const b = document.getElementById("lab-open");
-    const rb = b ? b.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
+    telas.forEach((t) => t.instancia.parar()); // para logo, para não competir com a transição
+    const b = document.getElementById(grupoAtual === "estudo" ? "estudo-open" : "lab-open");
+    const rb = b && b.offsetParent ? b.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
     const x = rb.left + rb.width / 2, y = rb.top + rb.height / 2;
     const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)) + 20;
     anima?.cancel();
     const fim = () => {
       raiz.classList.remove("on");
       raiz.setAttribute("aria-hidden", "true");
-      if (t) t.instancia.parar();
+      esconderTudo(null);
       atual = null;
     };
     history.replaceState(null, "", location.pathname + location.search);
     if (LAB.reduzMovimento) return fim();
     anima = raiz.animate(
       [{ clipPath: `circle(${r}px at ${x}px ${y}px)` }, { clipPath: `circle(0px at ${x}px ${y}px)` }],
-      { duration: 520, easing: "cubic-bezier(0.7, 0, 0.2, 1)", fill: "forwards" }
+      { duration: 460, easing: "cubic-bezier(0.7, 0, 0.2, 1)", fill: "forwards" }
     );
-    anima.finished.then(() => { anima.cancel(); fim(); }).catch(() => {});
-    // o módulo para de animar logo, para não competir com a transição
-    if (t) t.instancia.parar();
+    anima.finished.then(() => { anima.cancel(); if (!aberto) fim(); }).catch(() => {});
   }
 
   $("#lab-back").addEventListener("click", fechar);
-  grupoBt.addEventListener("click", () => {
-    const alvo = grupoAtual === "lab" ? "estudo" : "lab";
-    const m = modulosDoGrupo(alvo).find((x) => !x.emBreve);
-    if (m) ativar(m.id);
-  });
+  grupoBt.addEventListener("click", () => ativar(grupoAtual === "lab" ? "estudo" : "lab"));
   selo.addEventListener("click", () => pop.classList.toggle("on"));
   corpo.addEventListener("pointerdown", () => pop.classList.remove("on"));
   somBt.addEventListener("click", () => {
@@ -164,9 +253,10 @@
   document.addEventListener("keydown", (e) => {
     if (!aberto) return;
     if (e.key === "Escape") { if (pop.classList.contains("on")) pop.classList.remove("on"); else fechar(); return; }
-    if (e.target.matches && e.target.matches("input, textarea")) return;
+    if (e.target.matches && e.target.matches("input, textarea, select")) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
     const n = +e.key;
-    const lista = modulosDoGrupo();
+    const lista = doGrupo();
     if (n >= 1 && n <= lista.length) ativar(lista[n - 1].id);
   });
 
@@ -179,6 +269,7 @@
     clearTimeout(LAB._tt);
     LAB._tt = setTimeout(() => t.classList.remove("on"), 2600);
   };
+  LAB.catalogo = CATALOGO;
   LAB.abrir = abrir;
   LAB.fechar = fechar;
   LAB.ativar = ativar;

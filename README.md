@@ -38,11 +38,17 @@ Os tokens ficam em `:root` no `style.css`; os componentes do laboratório e do e
 
 ## Estudo
 
-Botão **Estudo** (tecla `E`). Todas as ferramentas seguem o mesmo padrão:
+Botão **Estudo** (tecla `E`). Cada matéria tem a lista de ferramentas ao lado (no celular, no seletor do topo) e cada ferramenta é dividida em três etapas, uma de cada vez:
 
-- **Entenda a teoria**: o conceito em linguagem simples, as fórmulas e os erros comuns.
-- **Resolver**: você digita o que o problema dá e recebe a resposta e o **passo a passo** (com botão Copiar). No modo **guiado** os passos aparecem um de cada vez, para tentar antes de ver.
-- **Praticar**: exercícios novos a cada clique, corrigidos pelo mesmo motor que resolve, com placar.
+1. **Entenda**: o conceito em linguagem simples, as fórmulas e os erros comuns. É a etapa que abre na primeira visita a cada ferramenta.
+2. **Resolva**: você digita o que o problema dá e recebe a resposta e o **passo a passo** (com botão Copiar). Em **Ajustes** dá para ver os passos um de cada vez, para tentar antes de ver.
+3. **Pratique**: exercícios novos a cada clique, corrigidos pelo mesmo motor que resolve, com placar.
+
+Os exercícios de prática existem em todas as ferramentas de cálculo (as de consulta, como Formulário, Constantes e Tabelas, não têm). Alguns são de múltipla escolha, como reconhecer uma função pelo gráfico ou escolher a equação iônica líquida certa.
+
+**Gráficos.** Todas as matérias usam o mesmo componente (`js/estudo/grafico.js`): escalas com passos 1-2-5 e números com vírgula, leitura do valor sob o dedo ou o mouse, zoom (botões, pinça ou Ctrl + roda) e arraste, legenda, etiquetas que não se sobrepõem e escala 1:1 quando a forma importa (círculo trigonométrico, vetores, trajetória). Nos exercícios a leitura fica desligada, para não entregar a resposta.
+
+O app lembra a última matéria e ferramenta usadas, e cada ferramenta tem endereço próprio (por exemplo `#estudo/quimica/estequiometria`).
 
 Aceita `1,5`, `1e-3`, `1,5x10^-3` e `1/3`.
 
@@ -67,7 +73,7 @@ Botão **Laboratório** (tecla `L`). Cada módulo tem um selo dizendo o que é f
 | **Estrela** | Vida de estrelas de 0,3 a 25 massas solares, estágios de fusão, curva de energia de ligação e supernova. |
 | **Acelerador** | Feixes num anel de 27 km com os números reais, detector com trajetórias no campo magnético, o pico do Z⁰ e o Higgs. |
 
-**Desempenho.** O laboratório e o estudo só são baixados quando alguém os abre; os laços de animação não criam objetos, a resolução do canvas se adapta e só o módulo visível anima.
+**Desempenho.** A página inicial baixa só a tabela. Cada módulo do laboratório e cada matéria do estudo é baixado quando alguém o abre (os vizinhos são pré-carregados quando o navegador fica ocioso); os laços de animação não criam objetos, a resolução do canvas se adapta e só o módulo visível anima.
 
 ## Arquivos
 
@@ -78,10 +84,11 @@ Botão **Laboratório** (tecla `L`). Cada módulo tem um selo dizendo o que é f
 | `js/app.js` | Tabela, modos, ficha, modelo atômico, guia e carregamento sob demanda |
 | `js/dados.js` | Dados físicos dos elementos ([Periodic-Table-JSON](https://github.com/Bowserinator/Periodic-Table-JSON), CC BY-SA 3.0) |
 | `js/descricoes.js` | Textos em português de cada elemento |
-| `js/lab/*.js` | Motor nuclear (`fisica.js`), base de animação (`base.js`), módulos e casca (`lab.js`) |
+| `js/lab/*.js` | Motor nuclear (`fisica.js`), base de animação (`base.js`), módulos e casca (`lab.js`, com o catálogo de módulos e o carregamento sob demanda) |
 | `css/lab.css` | Componentes do laboratório e do estudo |
 | `js/estudo/base-estudo.js` | Componentes comuns do estudo: campos, passo a passo, prática e a casca de cada matéria |
 | `js/estudo/expressao.js` | Leitor e avaliador de expressões matemáticas (sem `eval`) |
+| `js/estudo/grafico.js` | Gráfico comum do estudo (funções, dados, histogramas, vetores, trajetórias) |
 | `js/estudo/quimica-calc.js`, `quimica-redox-calc.js`, `quimica-termo-calc.js` | Motores de química |
 | `js/estudo/fisica-calc.js`, `matematica-calc.js`, `pesquisa-calc.js` | Motores de física, matemática e pesquisa |
 | `js/estudo/quimica*.js`, `fisica-estudo.js`, `matematica.js`, `pesquisa.js` | Interfaces de cada matéria |
