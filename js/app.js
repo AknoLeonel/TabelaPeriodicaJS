@@ -1460,15 +1460,17 @@
   // Laboratório (carregado só quando alguém abre, para a tabela abrir rápido)
   // ---------------------------------------------------------------------------
   const labBotao = $("#lab-open");
-  const LAB_ARQUIVOS = ["js/lab/fisica.js", "js/estudo/quimica-calc.js", "js/estudo/fisica-calc.js", "js/lab/base.js", "js/lab/atomo.js", "js/lab/decaimento.js", "js/lab/reator.js", "js/lab/estrela.js", "js/lab/acelerador.js", "js/estudo/quimica.js", "js/estudo/fisica-estudo.js", "js/lab/lab.js"];
+  const LAB_ARQUIVOS = ["js/lab/fisica.js", "js/estudo/quimica-calc.js", "js/estudo/fisica-calc.js", "js/estudo/expressao.js", "js/estudo/matematica-calc.js", "js/estudo/pesquisa-calc.js", "js/estudo/quimica-redox-calc.js", "js/estudo/quimica-termo-calc.js", "js/lab/base.js", "js/lab/atomo.js", "js/lab/decaimento.js", "js/lab/reator.js", "js/lab/estrela.js", "js/lab/acelerador.js", "js/estudo/base-estudo.js", "js/estudo/quimica.js", "js/estudo/fisica-estudo.js", "js/estudo/quimica-redox.js", "js/estudo/quimica-termo.js", "js/estudo/matematica.js", "js/estudo/pesquisa.js", "js/lab/lab.js"];
   let labPromessa = null;
   function carregarLab() {
     if (labPromessa) return labPromessa;
     labPromessa = new Promise((resolve, reject) => {
-      const css = document.createElement("link");
-      css.rel = "stylesheet";
-      css.href = "css/lab.css";
-      document.head.appendChild(css);
+      ["css/lab.css", "css/estudo-quimica-redox.css", "css/estudo-quimica-termo.css", "css/estudo-matematica.css", "css/estudo-pesquisa.css"].forEach((href) => {
+        const css = document.createElement("link");
+        css.rel = "stylesheet";
+        css.href = href;
+        document.head.appendChild(css);
+      });
       LAB_ARQUIVOS.forEach((src, i) => {
         const sc = document.createElement("script");
         sc.src = src;

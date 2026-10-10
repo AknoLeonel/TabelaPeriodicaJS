@@ -12,7 +12,7 @@
   const { VARS, U, TOPICOS } = F;
   const COR = "#4da3ff";
 
-  const FERR = [];
+  const FERR = (E.ferramentas.fisica = E.ferramentas.fisica || []);
   const est = { topico: "cinematica", alvo: null, ordem: [], campos: new Map(), uSaida: null };
   let parar = () => {};
 
@@ -289,53 +289,25 @@
     },
   });
 
-  // ---------- casca ----------
-  function criar(caixa) {
-    caixa.classList.add("est");
-    const wrap = el("div", "est-wrap");
-    caixa.appendChild(wrap);
-    wrap.innerHTML = `<div class="est-head"><div><h3>Física</h3><p>Resolva passo a passo, com unidades, ou treine com exercícios novos.</p></div></div>`;
-    const opcoes = el("details", "est-opc");
-    opcoes.innerHTML = "<summary>Opções: valor de g e modo guiado</summary>";
-    const segG = ui.segmentado({ itens: [{ id: "9.8", rotulo: "g = 9,8 m/s²" }, { id: "10", rotulo: "g = 10 m/s²" }, { id: "9.81", rotulo: "g = 9,81 m/s²" }], valor: String(F.config.g), onChange: (id) => { F.config.g = +id; est.campos.forEach((c, k) => { if (VARS[k].padrao) c.set(String(F.config.g).replace(".", ",")); }); abrir(ferrAtual.def.id); } });
+  // ---------- módulo ----------
+  const opcoesG = (api) => {
+    const segG = ui.segmentado({ itens: [{ id: "9.8", rotulo: "g = 9,8 m/s²" }, { id: "10", rotulo: "g = 10 m/s²" }, { id: "9.81", rotulo: "g = 9,81 m/s²" }], valor: String(F.config.g), onChange: (id) => { F.config.g = +id; est.campos.forEach((c, k) => { if (VARS[k].padrao) c.set(String(F.config.g).replace(".", ",")); }); api.reabrir(); } });
     segG.el.title = "Muitos professores usam g = 10 m/s² para facilitar as contas.";
-    const segGuia = ui.segmentado({ itens: [{ id: "t", rotulo: "Tudo de uma vez" }, { id: "g", rotulo: "Passo a passo guiado" }], valor: E.guiado ? "g" : "t", onChange: (id) => { E.guiado = id === "g"; E.repintarPassos(); } });
-    opcoes.append(segG.el, segGuia.el);
-    const abas = ui.segmentado({ itens: FERR.map((f) => ({ id: f.id, rotulo: f.nome })), valor: FERR[0].id, onChange: (id) => abrir(id), cls: "est-abas" });
-    const modoSeg = ui.segmentado({ itens: [{ id: "resolver", rotulo: "Resolver" }, { id: "treino", rotulo: "Praticar" }], valor: "resolver", onChange: (id) => { modo = id; abrir(ferrAtual.def.id); } });
-    const resumo = el("p", "est-resumo");
-    const painel = el("div", "est-painel");
-    wrap.append(abas.el, resumo, modoSeg.el, opcoes, painel);
-    wrap.appendChild(el("p", "est-rodape", "Cada resultado é calculado por um algoritmo e traz a conta completa, com conversão de unidades e conferência dimensional. As fórmulas valem nas condições usuais do ensino médio e do ciclo básico da faculdade (partícula, sem resistência do ar, campos uniformes)."));
-
-    let modo = "resolver", ferrAtual = null;
-    const ctx = { irPara: (id) => { abas.set(id); abrir(id); } };
-    function abrir(id) {
-      const def = FERR.find((x) => x.id === id);
-      parar();
-      painel.innerHTML = "";
-      resumo.textContent = def.resumo;
-      abas.set(id);
-      modoSeg.el.hidden = !def.prat;
-      if (!def.prat && modo === "treino") { modo = "resolver"; modoSeg.set("resolver"); }
-      const area = el("div");
-      painel.appendChild(area);
-      if (modo === "treino" && def.prat) { E.praticar(area, def.prat, F, "estudo.f.pontos"); ferrAtual = { def, api: null }; return; }
-      const api = def.montar(area, ctx);
-      ferrAtual = { def, api };
-    }
-    abrir(FERR[0].id);
-    return { iniciar() {}, parar() { parar(); }, abrir };
-  }
-
-  LAB.modulos.push({
+    return [segG.el];
+  };
+  E.modulo({
     id: "fisica",
-    grupo: "estudo",
     nome: "Física",
-    resumo: "Fórmulas com unidades, circuitos e lançamentos",
+    sub: "Resolva passo a passo, com unidades, ou treine com exercícios novos.",
     cor: COR,
     selo: "verificavel",
     icone: '<svg viewBox="0 0 24 24"><path d="M4 18c3-9 5-9 8 0s5 9 8 0"/><path d="M3 12h18"/></svg>',
+    motor: F,
+    chave: "estudo.f.pontos",
+    opcoesTitulo: "valor de g e modo guiado",
+    opcoes: opcoesG,
+    aoTrocar: () => parar(),
+    rodape: "Cada resultado é calculado por um algoritmo e traz a conta completa, com conversão de unidades e conferência dimensional. As fórmulas valem nas condições usuais do ensino médio e do ciclo básico da faculdade (partícula, sem resistência do ar, campos uniformes).",
     nota: {
       real: [
         "Cada resultado é calculado por um algoritmo (não por IA) e mostra a fórmula, o isolamento, a substituição e a conferência de unidades.",
@@ -349,6 +321,5 @@
         "A fórmula de Bohr vale só para átomos com um elétron.",
       ],
     },
-    criar,
   });
 })();

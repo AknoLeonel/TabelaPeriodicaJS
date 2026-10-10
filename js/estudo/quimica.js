@@ -7,103 +7,13 @@
   const LAB = window.LAB;
   const Q = window.QCalc;
   const { el, ui } = LAB;
+  const { campo, grade, renderPassos, mostrar, resultadoBox, dicaInicial, debounce } = LAB.estudo;
 
   const COR_EL = { C: "#8fa0c8", H: "#9ad0ff", O: "#ff6a5a", N: "#6f7bff", S: "#ffd24d", P: "#ff9a4d", Na: "#ff4d6d", Cl: "#5df0b0", Ca: "#ff9e3d", K: "#d27bff", Fe: "#ff8a5a", Mg: "#2ee6b6" };
   const corDe = (s, i) => COR_EL[s] || ["#7aa2ff", "#ffb23d", "#2ee6b6", "#ff7ab8", "#c9a6ff", "#9be15d"][i % 6];
-  const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
-  const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* sem armazenamento */ } };
-  const ler = (k, padrao) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : padrao; } catch (e) { return padrao; } };
-
-  // ---------- componentes ----------
-  function campo({ rotulo, ph = "", sufixo = "", tipo = "num", ajuda = "", valor = "", unidades = null, unidadePadrao = null }) {
-    const w = el("label", "campo");
-    const topo = el("span", "c-rot", rotulo);
-    const caixa = el("span", "c-in");
-    const inp = el("input");
-    inp.type = "text";
-    inp.inputMode = tipo === "num" ? "decimal" : "text";
-    inp.autocomplete = "off"; inp.autocapitalize = "off"; inp.spellcheck = false;
-    inp.placeholder = ph; inp.value = valor;
-    caixa.appendChild(inp);
-    let sel = null;
-    if (unidades) {
-      sel = el("select", "sel");
-      for (const u of unidades) { const o = el("option", "", u); o.value = u; sel.appendChild(o); }
-      if (unidadePadrao) sel.value = unidadePadrao;
-      caixa.appendChild(sel);
-    } else if (sufixo) caixa.appendChild(el("i", "", sufixo));
-    w.append(topo, caixa);
-    if (ajuda) w.appendChild(el("small", "", ajuda));
-    return {
-      el: w, input: inp, sel,
-      texto: () => inp.value.trim(),
-      num: () => { const t = inp.value.trim(); return t === "" ? null : Q.lerNumero(t); },
-      set: (v) => { inp.value = v; },
-      unidade: () => (sel ? sel.value : null),
-      limpar: () => { inp.value = ""; },
-    };
-  }
-  const grade = (...cs) => { const g = el("div", "campos"); cs.forEach((c) => g.appendChild(c.el || c)); return g; };
-
-  let guiado = false;
-  function renderPassos(raiz, passos) {
-    raiz.innerHTML = "";
-    const ol = el("ol", "passos");
-    let visiveis = guiado ? 1 : passos.length;
-    const lis = passos.map((p, i) => {
-      const li = el("li", "passo" + (i >= visiveis ? " oculto" : ""));
-      li.innerHTML = `<span class="pn">${i + 1}</span><div class="pb"><h5>${p.t}</h5><div class="pc">${p.h}</div></div>`;
-      ol.appendChild(li);
-      return li;
-    });
-    if (guiado && passos.length > 1) {
-      raiz.appendChild(el("p", "dica-guia", "Modo guiado: tente fazer cada passo no caderno antes de revelar o próximo."));
-    }
-    raiz.appendChild(ol);
-    if (guiado && passos.length > 1) {
-      const bt = ui.botao("Mostrar o próximo passo →", () => {
-        if (visiveis < passos.length) { lis[visiveis].classList.remove("oculto"); lis[visiveis].scrollIntoView({ block: "nearest", behavior: "smooth" }); visiveis++; }
-        if (visiveis >= passos.length) bt.remove();
-        else bt.textContent = `Mostrar o próximo passo (${visiveis}/${passos.length}) →`;
-      });
-      raiz.appendChild(bt);
-    }
-  }
-  function textoPlano(r) {
-    const t = [r.resposta ? "Resposta: " + r.resposta.replace(/<[^>]+>/g, "") : ""];
-    (r.passos || []).forEach((p, i) => {
-      const d = document.createElement("div");
-      d.innerHTML = p.h.replace(/<\/(tr|p|div|li)>/g, "\n");
-      t.push(`${i + 1}. ${p.t}\n${d.textContent.replace(/\n{2,}/g, "\n").trim()}`);
-    });
-    return t.join("\n\n");
-  }
-  // mostra a resposta + passo a passo
-  function mostrar(raiz, r, { extra } = {}) {
-    raiz.innerHTML = "";
-    if (!r.ok) { raiz.appendChild(el("div", "res-erro", `<b>Hmm, não deu:</b> ${r.erro}`)); return; }
-    const card = el("div", "resp");
-    card.innerHTML = `<small>Resposta</small><div class="resp-v">${r.respostaHTML || r.resposta}</div>`;
-    raiz.appendChild(card);
-    if (extra) raiz.appendChild(extra(r));
-    const cab = el("div", "passos-cab");
-    cab.innerHTML = `<h4>Passo a passo</h4>`;
-    const cp = ui.botao("Copiar", async () => { try { await navigator.clipboard.writeText(textoPlano(r)); cp.textContent = "Copiado ✓"; setTimeout(() => (cp.textContent = "Copiar"), 1600); } catch (e) { cp.textContent = "Não consegui copiar"; } }, "sec mini");
-    cab.appendChild(cp);
-    raiz.appendChild(cab);
-    const corpo = el("div");
-    raiz.appendChild(corpo);
-    renderPassos(corpo, r.passos);
-    raiz._r = r; raiz._corpo = corpo;
-  }
-  function repintarPassos() {
-    document.querySelectorAll(".est-wrap [data-res]").forEach((raiz) => { if (raiz._r && raiz._r.ok) renderPassos(raiz._corpo, raiz._r.passos); });
-  }
-  const resultadoBox = () => { const d = el("div", "est-res"); d.dataset.res = "1"; return d; };
-  const dicaInicial = (t) => el("div", "est-vazio", t);
 
   // ---------- ferramentas ----------
-  const FERR = [];
+  const FERR = (LAB.estudo.ferramentas.quimica = LAB.estudo.ferramentas.quimica || []);
 
   // 1. Massa molar
   FERR.push({
@@ -386,119 +296,25 @@
     },
   });
 
-  // ---------- exercícios ----------
-  function praticar(raiz, tipo, motor = Q, chave = "estudo.q.pontos") {
-    raiz.innerHTML = "";
-    const pts = ler(chave, { ok: 0, total: 0, seq: 0, melhor: 0 });
-    const placar = el("div", "placar");
-    const att = () => { placar.innerHTML = `<span>Acertos <b>${pts.ok}/${pts.total}</b></span><span>Sequência <b>${pts.seq}</b></span><span>Melhor <b>${pts.melhor}</b></span>`; };
-    att();
-    const card = el("div", "ex-card");
-    const caixa = el("div", "ex-resp");
-    const inp = el("input"); inp.type = "text"; inp.inputMode = tipo === "balancear" ? "text" : "decimal"; inp.placeholder = tipo === "balancear" ? "ex.: 2, 1, 2" : "sua resposta"; inp.autocomplete = "off";
-    const unSpan = el("span", "ex-un");
-    caixa.append(inp, unSpan);
-    const fb = el("div", "ex-fb");
-    const passosBox = el("div", "ex-passos"); passosBox.hidden = true;
-    const bts = el("div", "linha-bt");
-    let ex, respondido = false;
-    const btConf = ui.botao("Conferir", () => conferir());
-    const btVer = ui.botao("Ver resolução", () => { passosBox.hidden = !passosBox.hidden; if (!passosBox.hidden) renderPassos(passosBox, ex.passos); }, "sec");
-    const btOutro = ui.botao("Outro exercício →", () => novo(), "sec");
-    bts.append(btConf, btVer);
-    function novo() {
-      ex = motor.gerarExercicio(tipo);
-      respondido = false;
-      card.innerHTML = `<small>Exercício</small><div class="ex-en">${ex.enunciado}</div>`;
-      inp.value = ""; fb.innerHTML = ""; fb.className = "ex-fb"; passosBox.hidden = true; passosBox.innerHTML = "";
-      unSpan.textContent = ex.unidade || "";
-      bts.innerHTML = ""; bts.append(btConf, btVer);
-      inp.focus({ preventScroll: true });
-    }
-    function conferir() {
-      const t = inp.value.trim();
-      if (!t) { fb.className = "ex-fb aviso"; fb.textContent = "Digite uma resposta primeiro."; return; }
-      const c = motor.conferir(ex, t);
-      if (c === null) { fb.className = "ex-fb aviso"; fb.textContent = "Não entendi esse número. Use vírgula ou ponto (ex.: 18,02)."; return; }
-      if (!respondido) {
-        pts.total++;
-        if (c) { pts.ok++; pts.seq++; pts.melhor = Math.max(pts.melhor, pts.seq); } else pts.seq = 0;
-        guardar(chave, pts); att();
-        respondido = true;
-      }
-      if (c) { fb.className = "ex-fb certo"; fb.innerHTML = `<b>Certo!</b> ${ex.tipo === "lista" ? "" : "Resposta: " + ex.texto}`; }
-      else {
-        fb.className = "ex-fb errado";
-        let dica = "";
-        if (ex.tipo !== "lista") { const v = motor.lerNumero(t); if (Math.abs(v - ex.resposta) / Math.abs(ex.resposta) < 0.15) dica = " Está perto: confira os arredondamentos e as unidades."; }
-        fb.innerHTML = `<b>Ainda não.</b>${dica} Abra a resolução para ver onde pode ter errado.`;
-      }
-      bts.innerHTML = ""; bts.append(btVer, btOutro);
-      if (c) btOutro.classList.remove("sec");
-    }
-    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { if (respondido) novo(); else conferir(); } });
-    raiz.append(placar, card, caixa, fb, bts, passosBox);
-    novo();
-  }
 
-  // ---------- casca do módulo ----------
-  function criar(caixa) {
-    caixa.classList.add("est");
-    const wrap = el("div", "est-wrap");
-    caixa.appendChild(wrap);
-    wrap.innerHTML = `
-      <div class="est-head">
-        <div><h3>Química</h3><p>Resolva passo a passo ou treine com exercícios novos.</p></div>
-      </div>`;
-    const opcoes = el("details", "est-opc");
-    opcoes.innerHTML = "<summary>Opções: massas atômicas e modo guiado</summary>";
-    const segMassas = ui.segmentado({ itens: [{ id: "p", rotulo: "Massas precisas" }, { id: "e", rotulo: "Massas de livro" }], valor: "p", onChange: (id) => { Q.config.escolar = id === "e"; if (ferrAtual && ferrAtual.api && ferrAtual.api.recalcular) ferrAtual.api.recalcular(); if (modo === "treino") abrir(ferrAtual.def.id); } });
-    segMassas.el.title = "Alguns professores usam massas arredondadas (H = 1, C = 12, O = 16, Cl = 35,5...).";
-    const segGuia = ui.segmentado({ itens: [{ id: "t", rotulo: "Tudo de uma vez" }, { id: "g", rotulo: "Passo a passo guiado" }], valor: "t", onChange: (id) => { guiado = id === "g"; repintarPassos(); } });
-    opcoes.append(segMassas.el, segGuia.el);
-    const abas = ui.segmentado({ itens: FERR.map((f) => ({ id: f.id, rotulo: f.nome })), valor: FERR[0].id, onChange: (id) => abrir(id), cls: "est-abas" });
-    const modoSeg = ui.segmentado({ itens: [{ id: "resolver", rotulo: "Resolver" }, { id: "treino", rotulo: "Praticar" }], valor: "resolver", onChange: (id) => { modo = id; abrir(ferrAtual.def.id); } });
-    const resumo = el("p", "est-resumo");
-    const painel = el("div", "est-painel");
-    wrap.append(abas.el, resumo, modoSeg.el, opcoes, painel);
-    wrap.appendChild(el("p", "est-rodape", "Cada resultado é calculado por um algoritmo e traz a conta completa: dá para conferir qualquer passo. Quando seu professor usar valores diferentes (massas arredondadas, outra temperatura), use a opção \"Massas de livro\" ou compare os passos."));
-
-    let modo = "resolver";
-    let ferrAtual = null;
-    const cache = {};
-    const ctx = { irPara: (id) => { abas.set(id); abrir(id); } };
-
-    function abrir(id) {
-      const def = FERR.find((x) => x.id === id);
-      painel.innerHTML = "";
-      resumo.textContent = def.resumo;
-      abas.set(id);
-      modoSeg.el.hidden = !def.prat;
-      if (!def.prat && modo === "treino") { modo = "resolver"; modoSeg.set("resolver"); }
-      const area = el("div");
-      painel.appendChild(area);
-      if (modo === "treino" && def.prat) { praticar(area, def.prat); ferrAtual = { def, api: null }; return; }
-      const api = def.montar(area, ctx);
-      ferrAtual = { def, api };
-      if (def.aoAbrir) def.aoAbrir(api);
-    }
-    abrir(FERR[0].id);
-
-    return {
-      iniciar() { /* sem animação contínua */ },
-      parar() {},
-      abrir,
-    };
-  }
-
-  LAB.modulos.push({
+  // ---------- módulo ----------
+  const segMassas = (api) => {
+    const s = ui.segmentado({ itens: [{ id: "p", rotulo: "Massas precisas" }, { id: "e", rotulo: "Massas de livro" }], valor: Q.config.escolar ? "e" : "p", onChange: (id) => { Q.config.escolar = id === "e"; api.reabrir(); } });
+    s.el.title = "Alguns professores usam massas arredondadas (H = 1, C = 12, O = 16, Cl = 35,5...).";
+    return [s.el];
+  };
+  LAB.estudo.modulo({
     id: "quimica",
-    grupo: "estudo",
     nome: "Química",
-    resumo: "Resolva passo a passo e pratique",
+    sub: "Resolva passo a passo ou treine com exercícios novos.",
     cor: "#2ee6b6",
     selo: "verificavel",
     icone: '<svg viewBox="0 0 24 24"><path d="M9 3h6"/><path d="M10 3v6.2L4.6 18.3A2 2 0 0 0 6.3 21h11.4a2 2 0 0 0 1.7-2.7L14 9.2V3"/><path d="M7.5 14h9"/></svg>',
+    motor: Q,
+    chave: "estudo.q.pontos",
+    opcoesTitulo: "massas atômicas e modo guiado",
+    opcoes: segMassas,
+    rodape: "Cada resultado é calculado por um algoritmo e traz a conta completa: dá para conferir qualquer passo. Quando seu professor usar valores diferentes (massas arredondadas, outra temperatura), use a opção \"Massas de livro\" ou compare os passos.",
     nota: {
       real: [
         "Cada resultado é calculado por um algoritmo (não por IA) e mostra a conta completa: você pode conferir passo a passo.",
@@ -508,16 +324,8 @@
       ],
       simplificado: [
         "Gases são tratados como ideais; o pH usa Kw = 10⁻¹⁴ (25 °C) e não considera a autoionização da água em soluções muito diluídas.",
-        "Não há equações iônicas, oxirredução ou equilíbrios múltiplos por enquanto.",
         "A distribuição eletrônica usa as configurações medidas dos elementos neutros; para íons, aplica a regra geral de remover elétrons da camada mais externa.",
       ],
     },
-    criar,
   });
-
-  // helpers compartilhados com os outros módulos de Estudo (Física etc.)
-  LAB.estudo = {
-    campo, grade, renderPassos, mostrar, repintarPassos, resultadoBox, dicaInicial, debounce, guardar, ler, praticar,
-    get guiado() { return guiado; }, set guiado(v) { guiado = !!v; },
-  };
 })();
