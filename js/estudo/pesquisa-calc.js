@@ -894,7 +894,7 @@
     const { m, e } = dividirValor(c.v);
     const mant = virg(m);
     const ehExp = String(c.v).toLowerCase().includes("e");
-    const valorTxt = ehExp ? `${mant} × 10${sup(e)}` : mant.replace(/\B(?=(\d{3})+(?!\d))/g, (x, i, s) => (s.indexOf(",") !== -1 && i > s.indexOf(",") ? "" : "")) ;
+    const valorTxt = ehExp ? `${mant} × 10${sup(e)}` : mant;
     const valorHTML = ehExp ? `${mant} × 10<sup>${String(e).replace("-", "−")}</sup>` : mant;
     let incTxt = "exata", incHTML = "exata (definição)";
     if (c.u !== "0") {

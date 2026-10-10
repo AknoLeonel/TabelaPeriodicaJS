@@ -1,1 +1,13 @@
-/* em construção */
+/* Pesquisa */
+.pq-cv { width: 100%; height: 230px; display: block; border-radius: var(--radius-s, 8px); background: #0b0e12; border: 1px solid var(--stroke-soft); }
+.pq-res { height: 110px; }
+.pq-graf { display: flex; flex-direction: column; gap: 6px; }
+.pq-graf[hidden], .pq-cv[hidden] { display: none; }
+.pq-vars { display: flex; flex-direction: column; gap: 10px; }
+.pq-var { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: var(--radius-s, 8px); background: var(--panel, #161b22); border: 1px solid var(--stroke-soft); }
+.pq-const { display: flex; flex-direction: column; gap: 0; }
+.pq-cv-v { font: 500 16px var(--f-mono, monospace); overflow-wrap: anywhere; }
+.pq-sim { font-weight: 600; color: var(--m-c); }
+.pq-c .linha-bt .bt { flex: 0 1 auto; }
+.pq-saida { margin: 0; padding: 12px 14px; border-radius: var(--radius-s, 8px); background: #0b0e12; border: 1px solid var(--stroke-soft); font: 500 13px/1.55 var(--f-mono, monospace); white-space: pre; overflow-x: auto; color: var(--text); }
+.chip2.risca { text-decoration: line-through; opacity: 0.5; }

@@ -34,7 +34,7 @@
     return {
       el: w, input: inp, sel,
       texto: () => inp.value.trim(),
-      num: () => { const t = inp.value.trim(); return t === "" ? null : Q.lerNumero(t); },
+      num: () => { const t = inp.value.trim(); return t === "" ? null : window.QCalc.lerNumero(t); },
       set: (v) => { inp.value = v; },
       unidade: () => (sel ? sel.value : null),
       limpar: () => { inp.value = ""; },
@@ -100,7 +100,7 @@
   const dicaInicial = (t) => el("div", "est-vazio", t);
 
   // ---------- exercícios ----------
-  function praticar(raiz, tipo, motor = Q, chave = "estudo.q.pontos") {
+  function praticar(raiz, tipo, motor = window.QCalc, chave = "estudo.q.pontos") {
     raiz.innerHTML = "";
     const pts = ler(chave, { ok: 0, total: 0, seq: 0, melhor: 0 });
     const placar = el("div", "placar");
