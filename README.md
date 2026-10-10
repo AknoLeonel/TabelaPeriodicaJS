@@ -52,6 +52,12 @@ Um espaço de experimentos de física, aberto pelo botão **Laboratório** (ou t
 
 **Desempenho.** Nada é criado dentro dos laços de animação: partículas viram sprites pré-renderizados, a resolução do canvas se adapta sozinha se os quadros atrasarem, a física usa passos limitados e só o módulo visível anima. O laboratório só é baixado quando alguém o abre.
 
+## Estudo
+
+Para quem está no ensino médio ou na faculdade e travou num exercício: botão **Estudo** (tecla `E`; `#estudo/quimica` no endereço). Cada ferramenta resolve **passo a passo**, mostrando a conta inteira, e tem modo guiado (um passo por vez) e modo de prática com exercícios gerados na hora.
+
+**Química** (pronta): massa molar (com parênteses e hidratos), mol e conversões, balanceamento de equações (exato, por álgebra de frações), estequiometria com reagente limitante e rendimento, molaridade e diluição, pH e equilíbrio (ácidos e bases fortes e fracos), gases ideais e distribuição eletrônica (com exceções e íons). Aceita `1,5`, `1e-3`, `1,5x10^-3` e `1/3`. Alterne entre massas precisas e massas de livro. **Física** vem a seguir.
+
 ## Arquivos
 
 | Arquivo | Conteúdo |
@@ -65,3 +71,5 @@ Um espaço de experimentos de física, aberto pelo botão **Laboratório** (ou t
 | `js/lab/base.js` | Laço de animação, sprites, som e componentes do laboratório |
 | `js/lab/*.js` | Um arquivo por módulo e a casca (`lab.js`) |
 | `css/lab.css` | Estilos do laboratório |
+| `js/estudo/quimica-calc.js` | Motor de cálculo de química (roda também em Node) |
+| `js/estudo/quimica.js` | Interface do módulo Estudo de química |

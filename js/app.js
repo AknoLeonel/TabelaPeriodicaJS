@@ -1174,6 +1174,10 @@
       abrirLab("atomo");
       return;
     }
+    if ((e.key === "e" || e.key === "E") && document.activeElement !== search && !e.metaKey && !e.ctrlKey) {
+      abrirLab("quimica");
+      return;
+    }
     if (e.key === "/" && document.activeElement !== search) {
       e.preventDefault();
       search.focus();
@@ -1456,7 +1460,7 @@
   // Laboratório (carregado só quando alguém abre, para a tabela abrir rápido)
   // ---------------------------------------------------------------------------
   const labBotao = $("#lab-open");
-  const LAB_ARQUIVOS = ["js/lab/fisica.js", "js/lab/base.js", "js/lab/atomo.js", "js/lab/decaimento.js", "js/lab/reator.js", "js/lab/estrela.js", "js/lab/acelerador.js", "js/lab/lab.js"];
+  const LAB_ARQUIVOS = ["js/lab/fisica.js", "js/estudo/quimica-calc.js", "js/lab/base.js", "js/lab/atomo.js", "js/lab/decaimento.js", "js/lab/reator.js", "js/lab/estrela.js", "js/lab/acelerador.js", "js/estudo/quimica.js", "js/lab/lab.js"];
   let labPromessa = null;
   function carregarLab() {
     if (labPromessa) return labPromessa;
@@ -1489,12 +1493,17 @@
     }
   }
   labBotao.addEventListener("click", () => abrirLab("atomo"));
+  $("#estudo-open").addEventListener("click", (e) => abrirLab("quimica", e.currentTarget));
+  $("#hub-lab").addEventListener("click", (e) => abrirLab("atomo", e.currentTarget));
+  $("#hub-estudo").addEventListener("click", (e) => abrirLab("quimica", e.currentTarget));
   window.abrirLab = abrirLab;
 
   // Abrir direto um elemento pelo endereço (ex.: index.html#Fe) ou o laboratório (#lab/atomo)
   const hash = decodeURIComponent(location.hash.slice(1));
   if (/^lab/i.test(hash)) {
     setTimeout(() => abrirLab(hash.split("/")[1] || "atomo"), 300);
+  } else if (/^estudo/i.test(hash)) {
+    setTimeout(() => abrirLab(hash.split("/")[1] || "quimica"), 300);
   } else if (hash) {
     const alvo = elementos.find((e) => e.s.toLowerCase() === hash.toLowerCase() || String(e.n) === hash);
     if (alvo) setTimeout(() => abrirDetalhe(alvo.n), 1400);

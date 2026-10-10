@@ -354,5 +354,6 @@
     fiel: { texto: "Fiel à física", cls: "fiel" },
     parcial: { texto: "Parcialmente fiel", cls: "parcial" },
     ilustrativo: { texto: "Ilustrativo", cls: "ilus" },
+    verificavel: { texto: "Verificável", cls: "fiel" },
   };
 })();
