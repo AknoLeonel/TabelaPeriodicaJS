@@ -56,7 +56,9 @@ Um espaço de experimentos de física, aberto pelo botão **Laboratório** (ou t
 
 Para quem está no ensino médio ou na faculdade e travou num exercício: botão **Estudo** (tecla `E`; `#estudo/quimica` no endereço). Cada ferramenta resolve **passo a passo**, mostrando a conta inteira, e tem modo guiado (um passo por vez) e modo de prática com exercícios gerados na hora.
 
-**Química** (pronta): massa molar (com parênteses e hidratos), mol e conversões, balanceamento de equações (exato, por álgebra de frações), estequiometria com reagente limitante e rendimento, molaridade e diluição, pH e equilíbrio (ácidos e bases fortes e fracos), gases ideais e distribuição eletrônica (com exceções e íons). Aceita `1,5`, `1e-3`, `1,5x10^-3` e `1/3`. Alterne entre massas precisas e massas de livro. **Física** vem a seguir.
+**Química** (pronta): massa molar (com parênteses e hidratos), mol e conversões, balanceamento de equações (exato, por álgebra de frações), estequiometria com reagente limitante e rendimento, molaridade e diluição, pH e equilíbrio (ácidos e bases fortes e fracos), gases ideais e distribuição eletrônica (com exceções e íons). Aceita `1,5`, `1e-3`, `1,5x10^-3` e `1/3`. Alterne entre massas precisas e massas de livro.
+
+**Física** (pronta): resolvedor de fórmulas em 7 assuntos (cinemática, dinâmica, energia, calor e fluidos, eletricidade, ondas e óptica, física moderna). Você diz o que o problema pede e o que ele dá; o app escolhe a fórmula (ou a cadeia de fórmulas), isola, converte as unidades para o SI, substitui, calcula e confere a dimensão. Também tem circuitos (série/paralelo com parênteses, corrente e tensão em cada resistor), lançamento oblíquo com a trajetória desenhada, conversor de unidades com o fator de conversão, formulário pesquisável e exercícios gerados na hora. Escolha g = 9,8 ou 10 m/s² nas opções.
 
 ## Arquivos
 
@@ -73,3 +75,5 @@ Para quem está no ensino médio ou na faculdade e travou num exercício: botão
 | `css/lab.css` | Estilos do laboratório |
 | `js/estudo/quimica-calc.js` | Motor de cálculo de química (roda também em Node) |
 | `js/estudo/quimica.js` | Interface do módulo Estudo de química |
+| `js/estudo/fisica-calc.js` | Motor de cálculo de física: fórmulas, unidades, circuitos, lançamento (roda também em Node) |
+| `js/estudo/fisica-estudo.js` | Interface do módulo Estudo de física |

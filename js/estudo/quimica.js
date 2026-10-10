@@ -387,9 +387,9 @@
   });
 
   // ---------- exercícios ----------
-  function praticar(raiz, tipo) {
+  function praticar(raiz, tipo, motor = Q, chave = "estudo.q.pontos") {
     raiz.innerHTML = "";
-    const pts = ler("estudo.q.pontos", { ok: 0, total: 0, seq: 0, melhor: 0 });
+    const pts = ler(chave, { ok: 0, total: 0, seq: 0, melhor: 0 });
     const placar = el("div", "placar");
     const att = () => { placar.innerHTML = `<span>Acertos <b>${pts.ok}/${pts.total}</b></span><span>Sequência <b>${pts.seq}</b></span><span>Melhor <b>${pts.melhor}</b></span>`; };
     att();
@@ -407,7 +407,7 @@
     const btOutro = ui.botao("Outro exercício →", () => novo(), "sec");
     bts.append(btConf, btVer);
     function novo() {
-      ex = Q.gerarExercicio(tipo);
+      ex = motor.gerarExercicio(tipo);
       respondido = false;
       card.innerHTML = `<small>Exercício</small><div class="ex-en">${ex.enunciado}</div>`;
       inp.value = ""; fb.innerHTML = ""; fb.className = "ex-fb"; passosBox.hidden = true; passosBox.innerHTML = "";
@@ -418,19 +418,19 @@
     function conferir() {
       const t = inp.value.trim();
       if (!t) { fb.className = "ex-fb aviso"; fb.textContent = "Digite uma resposta primeiro."; return; }
-      const c = Q.conferir(ex, t);
+      const c = motor.conferir(ex, t);
       if (c === null) { fb.className = "ex-fb aviso"; fb.textContent = "Não entendi esse número. Use vírgula ou ponto (ex.: 18,02)."; return; }
       if (!respondido) {
         pts.total++;
         if (c) { pts.ok++; pts.seq++; pts.melhor = Math.max(pts.melhor, pts.seq); } else pts.seq = 0;
-        guardar("estudo.q.pontos", pts); att();
+        guardar(chave, pts); att();
         respondido = true;
       }
       if (c) { fb.className = "ex-fb certo"; fb.innerHTML = `<b>Certo!</b> ${ex.tipo === "lista" ? "" : "Resposta: " + ex.texto}`; }
       else {
         fb.className = "ex-fb errado";
         let dica = "";
-        if (ex.tipo !== "lista") { const v = Q.lerNumero(t); if (Math.abs(v - ex.resposta) / Math.abs(ex.resposta) < 0.15) dica = " Está perto: confira os arredondamentos e as unidades."; }
+        if (ex.tipo !== "lista") { const v = motor.lerNumero(t); if (Math.abs(v - ex.resposta) / Math.abs(ex.resposta) < 0.15) dica = " Está perto: confira os arredondamentos e as unidades."; }
         fb.innerHTML = `<b>Ainda não.</b>${dica} Abra a resolução para ver onde pode ter errado.`;
       }
       bts.innerHTML = ""; bts.append(btVer, btOutro);
@@ -515,10 +515,9 @@
     criar,
   });
 
-  // A Física chega a seguir: já aparece no menu, para mostrar o caminho
-  LAB.modulos.push({
-    id: "fisica", grupo: "estudo", emBreve: true, nome: "Física", resumo: "Em breve", cor: "#4da3ff", selo: "verificavel",
-    icone: '<svg viewBox="0 0 24 24"><path d="M4 18c3-9 5-9 8 0s5 9 8 0"/><path d="M3 12h18"/></svg>',
-    nota: { real: [], simplificado: [] }, criar() { return { iniciar() {}, parar() {} }; },
-  });
+  // helpers compartilhados com os outros módulos de Estudo (Física etc.)
+  LAB.estudo = {
+    campo, grade, renderPassos, mostrar, repintarPassos, resultadoBox, dicaInicial, debounce, guardar, ler, praticar,
+    get guiado() { return guiado; }, set guiado(v) { guiado = !!v; },
+  };
 })();

@@ -1460,7 +1460,7 @@
   // Laboratório (carregado só quando alguém abre, para a tabela abrir rápido)
   // ---------------------------------------------------------------------------
   const labBotao = $("#lab-open");
-  const LAB_ARQUIVOS = ["js/lab/fisica.js", "js/estudo/quimica-calc.js", "js/lab/base.js", "js/lab/atomo.js", "js/lab/decaimento.js", "js/lab/reator.js", "js/lab/estrela.js", "js/lab/acelerador.js", "js/estudo/quimica.js", "js/lab/lab.js"];
+  const LAB_ARQUIVOS = ["js/lab/fisica.js", "js/estudo/quimica-calc.js", "js/estudo/fisica-calc.js", "js/lab/base.js", "js/lab/atomo.js", "js/lab/decaimento.js", "js/lab/reator.js", "js/lab/estrela.js", "js/lab/acelerador.js", "js/estudo/quimica.js", "js/estudo/fisica-estudo.js", "js/lab/lab.js"];
   let labPromessa = null;
   function carregarLab() {
     if (labPromessa) return labPromessa;
