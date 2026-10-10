@@ -18,16 +18,16 @@
   };
 
   raiz.innerHTML = `
-    <header class="lab-top glass">
+    <header class="lab-top surf">
       <button class="lab-back" id="lab-back" type="button" aria-label="Voltar para a tabela">${IC.voltar}<span class="txt">Tabela</span></button>
       <div class="lab-titulo"><h2 id="lab-h">Laboratório</h2><p id="lab-p"></p></div>
       <button class="selo" id="lab-selo" type="button" aria-haspopup="dialog"></button>
       <button class="lab-ic" id="lab-grupo" type="button"></button>
       <button class="lab-ic" id="lab-som" type="button" aria-label="Som">${IC.som}</button>
     </header>
-    <div class="lab-pop glass" id="lab-pop" role="dialog" aria-label="O que é real e o que é simplificado"></div>
+    <div class="lab-pop surf" id="lab-pop" role="dialog" aria-label="O que é real e o que é simplificado"></div>
     <div class="lab-corpo" id="lab-corpo"></div>
-    <nav class="lab-nav glass" id="lab-nav" aria-label="Módulos do laboratório"></nav>`;
+    <nav class="lab-nav surf" id="lab-nav" aria-label="Módulos do laboratório"></nav>`;
 
   const $ = (s) => raiz.querySelector(s);
   const corpo = $("#lab-corpo");

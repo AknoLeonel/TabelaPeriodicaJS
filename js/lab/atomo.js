@@ -8,7 +8,7 @@
   const F = window.LabFisica;
   const { el, ui, clamp, lerp, rnd } = LAB;
 
-  const COR_P = "#ff5a7a", COR_N = "#8da4e0", COR_E = "#38e0ff";
+  const COR_P = "#e5646e", COR_N = "#8aa0c0", COR_E = "#4aa3e0";
   const ESTADO_COR = { estavel: [255, 255, 255], "b-": [77, 163, 255], "b+": [255, 90, 122], a: [255, 210, 63], n: [150, 140, 175], p: [150, 140, 175] };
   const MAGICOS = [2, 8, 20, 28, 50, 82, 126];
   const NMAX = 179, ZMAX = 120;

@@ -4,56 +4,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#05060d">
+  <meta name="theme-color" content="#0f1318">
   <meta name="color-scheme" content="dark">
-  <title>Tabela Periódica Interativa</title>
-  <meta name="description" content="Tabela periódica interativa com efeito glassmorphism, zoom cinematográfico e informações sobre cada elemento.">
+  <title>Elementar · Tabela periódica, laboratório e estudo</title>
+  <meta name="description" content="Tabela periódica interativa, laboratório de simulações e ferramentas de estudo passo a passo para química, física, matemática e pesquisa.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23f2c14e'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='Arial,sans-serif' font-weight='700' font-size='19' fill='%2317120a'%3EEl%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
-  <canvas id="particles" aria-hidden="true"></canvas>
-  <div class="orbs" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-  <div class="grain" aria-hidden="true"></div>
-  <div class="ambient" id="ambient" aria-hidden="true"></div>
 
   <div id="app">
-    <header class="topbar glass">
+    <header class="topbar surf">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="3.2"/><ellipse cx="20" cy="20" rx="16" ry="6"/><ellipse cx="20" cy="20" rx="16" ry="6" transform="rotate(60 20 20)"/><ellipse cx="20" cy="20" rx="16" ry="6" transform="rotate(-60 20 20)"/></svg>
-        </div>
+        <div class="brand-mark" aria-hidden="true"><i>1</i><b>El</b></div>
         <div>
-          <h1>Tabela Periódica</h1>
-          <p>118 elementos · clique para explorar</p>
+          <h1>Elementar</h1>
+          <p>Tabela periódica, laboratório e estudo</p>
         </div>
       </div>
 
-      <button class="random lab-btn glass-inset" id="lab-open" type="button" aria-label="Abrir o laboratório" title="Laboratório (L)">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6"/><path d="M10 3v6.2L4.6 18.3A2 2 0 0 0 6.3 21h11.4a2 2 0 0 0 1.7-2.7L14 9.2V3"/><path d="M7.5 14h9"/></svg>
-        <span>Laboratório</span><em>novo</em>
-      </button>
-
-      <button class="random lab-btn estudo-btn glass-inset" id="estudo-open" type="button" aria-label="Abrir o modo Estudo" title="Estudo: química passo a passo (E)">
+      <button class="random estudo-btn surf-in" id="estudo-open" type="button" aria-label="Abrir o modo Estudo" title="Estudo: exercícios passo a passo (E)">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 19.5V5.5"/><path d="M9 8h6M9 12h6"/></svg>
-        <span>Estudo</span><em>novo</em>
+        <span>Estudo</span>
       </button>
 
-      <button class="random glass-inset" id="random" type="button" aria-label="Elemento aleatório" title="Elemento aleatório (R)">
+      <button class="random lab-btn surf-in" id="lab-open" type="button" aria-label="Abrir o laboratório" title="Laboratório (L)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6"/><path d="M10 3v6.2L4.6 18.3A2 2 0 0 0 6.3 21h11.4a2 2 0 0 0 1.7-2.7L14 9.2V3"/><path d="M7.5 14h9"/></svg>
+        <span>Laboratório</span>
+      </button>
+
+      <button class="random surf-in" id="random" type="button" aria-label="Elemento aleatório" title="Elemento aleatório (R)">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
-        <span>Surpreenda-me</span>
+        <span>Aleatório</span>
       </button>
 
-      <label class="search glass-inset">
+      <button class="random guia-btn surf-in" id="guia-open" type="button" aria-label="Como usar" title="Como usar (?)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.9-1.1 1.8"/><path d="M12 17h.01"/></svg>
+        <span>Como usar</span>
+      </button>
+
+      <label class="search surf-in">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <input id="search" type="search" placeholder="Buscar: nome, símbolo ou número" autocomplete="off" aria-label="Buscar elemento">
         <kbd>/</kbd>
       </label>
 
-      <nav class="modes glass-inset" id="modes" aria-label="Modo de visualização">
+      <nav class="modes surf-in" id="modes" aria-label="Modo de visualização">
         <button data-mode="categoria" class="active">Categoria</button>
         <button data-mode="estado">Estado físico</button>
         <button data-mode="eletronegatividade">Eletronegatividade</button>
@@ -63,7 +63,7 @@
       </nav>
     </header>
 
-    <div class="control glass" id="control" hidden>
+    <div class="control surf" id="control" hidden>
       <span class="control-label" id="control-label"></span>
       <input type="range" id="control-range">
       <output id="control-value"></output>
@@ -73,7 +73,7 @@
       <div id="pan" class="pan">
         <div id="table" class="table" role="grid" aria-label="Tabela periódica"></div>
       </div>
-      <div class="zoomctl glass" id="zoomctl" aria-label="Zoom da tabela">
+      <div class="zoomctl surf" id="zoomctl" aria-label="Zoom da tabela">
         <button type="button" data-z="in" aria-label="Ampliar">+</button>
         <button type="button" data-z="out" aria-label="Reduzir">−</button>
         <button type="button" data-z="fit" aria-label="Ajustar à tela"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -81,11 +81,11 @@
     </main>
 
     <div class="hubs">
-      <button type="button" class="hub glass" id="hub-lab"><b>Laboratório</b><small>5 simulações de física</small></button>
-      <button type="button" class="hub glass hub-estudo" id="hub-estudo"><b>Estudo</b><small>Química passo a passo</small></button>
+      <button type="button" class="hub hub-estudo surf" id="hub-estudo"><b>Estudo</b><small>Química, Física, Matemática e Pesquisa, passo a passo</small></button>
+      <button type="button" class="hub surf" id="hub-lab"><b>Laboratório</b><small>Simulações de átomos, reatores e estrelas</small></button>
     </div>
 
-    <button class="daily glass" id="daily" type="button" aria-label="Abrir o elemento do dia"></button>
+    <button class="daily surf" id="daily" type="button" aria-label="Abrir o elemento do dia"></button>
 
     <footer class="legend" id="legend" aria-label="Legenda"></footer>
     <p class="m-hint" id="m-hint">Pince para ampliar · toque num elemento</p>
@@ -108,23 +108,49 @@
       <div class="d-panels" id="panels"></div>
     </div>
 
-    <button class="d-btn d-close glass" id="d-close" aria-label="Fechar">
+    <button class="d-btn d-close surf" id="d-close" aria-label="Fechar">
       <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
     </button>
-    <button class="d-btn d-share glass" id="d-share" aria-label="Copiar link deste elemento">
+    <button class="d-btn d-share surf" id="d-share" aria-label="Copiar link deste elemento">
       <svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg>
     </button>
-    <button class="d-btn d-prev glass" id="d-prev" aria-label="Elemento anterior">
+    <button class="d-btn d-prev surf" id="d-prev" aria-label="Elemento anterior">
       <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
     </button>
-    <button class="d-btn d-next glass" id="d-next" aria-label="Próximo elemento">
+    <button class="d-btn d-next surf" id="d-next" aria-label="Próximo elemento">
       <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
     </button>
   </section>
 
   <section id="lab" aria-hidden="true" role="dialog" aria-label="Laboratório"></section>
 
-  <div class="toast glass" id="toast" role="status" aria-live="polite"></div>
+  <section id="guia" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="guia-t">
+    <div class="guia-caixa surf">
+      <button class="guia-x" id="guia-x" type="button" aria-label="Fechar">×</button>
+      <h2 id="guia-t">O que você quer fazer?</h2>
+      <p class="guia-sub">Escolha um caminho. Em qualquer tela, o botão “Como usar” traz este guia de volta.</p>
+      <div class="guia-grade">
+        <button type="button" class="guia-card guia-estudo" data-ir="estudo">
+          <i class="guia-n">1</i><b>Resolver um exercício</b>
+          <span>Escolha a matéria (Química, Física, Matemática ou Pesquisa), digite o que o problema dá e veja a resolução passo a passo. Depois treine com exercícios novos.</span>
+          <em>Abrir o Estudo →</em>
+        </button>
+        <button type="button" class="guia-card" data-ir="tabela">
+          <i class="guia-n">2</i><b>Explorar os elementos</b>
+          <span>Toque num elemento para ver como é feito, onde é encontrado e para que serve. Mude o modo de cores para comparar propriedades.</span>
+          <em>Ver a tabela →</em>
+        </button>
+        <button type="button" class="guia-card" data-ir="lab">
+          <i class="guia-n">3</i><b>Experimentar</b>
+          <span>Monte átomos, deixe núcleos decaírem, controle um reator e acompanhe a vida de uma estrela. Cada simulação diz o que é real e o que é simplificado.</span>
+          <em>Abrir o Laboratório →</em>
+        </button>
+      </div>
+      <p class="guia-dica"><b>Dica:</b> todo resultado do Estudo é calculado por algoritmo e mostra a conta completa, então você pode conferir cada passo no caderno.</p>
+    </div>
+  </section>
+
+  <div class="toast surf" id="toast" role="status" aria-live="polite"></div>
 
   <script src="./js/dados.js"></script>
   <script src="./js/descricoes.js"></script>

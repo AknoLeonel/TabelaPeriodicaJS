@@ -118,34 +118,33 @@
     cacheSpr.set(chave, c);
     return c;
   };
-  // brilho suave (partículas luminosas); desenhar com "lighter"
+  // partícula: disco nítido com borda levemente suave (desenhar com "lighter" ou "source-over")
   LAB.brilho = (raio, cor, nucleo = 0.9) =>
     sprite(`b${raio}${cor}${nucleo}`, raio * 2, (g, L) => {
       const gr = g.createRadialGradient(L / 2, L / 2, 0, L / 2, L / 2, L / 2);
-      gr.addColorStop(0, `rgba(255,255,255,${nucleo})`);
-      gr.addColorStop(0.22, LAB.rgba(cor, 0.85));
-      gr.addColorStop(0.6, LAB.rgba(cor, 0.22));
-      gr.addColorStop(1, LAB.rgba(cor, 0));
+      gr.addColorStop(0, `rgba(255,255,255,${nucleo * 0.7})`);
+      gr.addColorStop(0.16, LAB.rgba(cor, 1));
+      gr.addColorStop(0.42, LAB.rgba(cor, 0.95));
+      gr.addColorStop(0.5, LAB.rgba(cor, 0.35));
+      gr.addColorStop(0.58, LAB.rgba(cor, 0));
       g.fillStyle = gr;
       g.fillRect(0, 0, L, L);
     });
-  // esfera sólida com luz de cima-esquerda (nucleons)
+  // nucleon: disco com leve sombreado e borda fina
   LAB.esfera = (raio, cor) =>
     sprite(`e${raio}${cor}`, raio * 2 + 6, (g, L) => {
       const c = L / 2;
-      const halo = g.createRadialGradient(c, c, raio * 0.6, c, c, c);
-      halo.addColorStop(0, LAB.rgba(cor, 0.5));
-      halo.addColorStop(1, LAB.rgba(cor, 0));
-      g.fillStyle = halo;
-      g.fillRect(0, 0, L, L);
-      const gr = g.createRadialGradient(c - raio * 0.35, c - raio * 0.4, raio * 0.1, c, c, raio);
-      gr.addColorStop(0, "#fff");
-      gr.addColorStop(0.25, cor);
-      gr.addColorStop(1, LAB.rgba(cor, 0.55));
+      const gr = g.createRadialGradient(c - raio * 0.3, c - raio * 0.35, raio * 0.1, c, c, raio);
+      gr.addColorStop(0, LAB.rgba(cor, 1));
+      gr.addColorStop(0.35, cor);
+      gr.addColorStop(1, LAB.rgba(cor, 0.78));
       g.fillStyle = gr;
       g.beginPath();
       g.arc(c, c, raio, 0, 6.2832);
       g.fill();
+      g.strokeStyle = "rgba(10,13,17,0.55)";
+      g.lineWidth = 1;
+      g.stroke();
     });
 
   // ---------------------------------------------------------------------------

@@ -204,7 +204,7 @@
 
   // 6. pH
   FERR.push({
-    id: "ph", nome: "pH e equilíbrio", prat: "ph",
+    id: "ph", nome: "pH", prat: "ph",
     resumo: "pH de ácidos e bases fortes e fracos, e conversões entre pH, pOH, [H⁺] e [OH⁻].",
     montar(raiz) {
       const tipos = [["acido-forte", "Ácido forte"], ["base-forte", "Base forte"], ["acido-fraco", "Ácido fraco"], ["base-fraca", "Base fraca"], ["conv", "Converter"]];
