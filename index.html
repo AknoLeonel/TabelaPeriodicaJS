@@ -32,6 +32,11 @@
         </div>
       </div>
 
+      <button class="random lab-btn glass-inset" id="lab-open" type="button" aria-label="Abrir o laboratório" title="Laboratório (L)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6"/><path d="M10 3v6.2L4.6 18.3A2 2 0 0 0 6.3 21h11.4a2 2 0 0 0 1.7-2.7L14 9.2V3"/><path d="M7.5 14h9"/></svg>
+        <span>Laboratório</span><em>novo</em>
+      </button>
+
       <button class="random glass-inset" id="random" type="button" aria-label="Elemento aleatório" title="Elemento aleatório (R)">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
         <span>Surpreenda-me</span>
@@ -106,6 +111,8 @@
       <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
     </button>
   </section>
+
+  <section id="lab" aria-hidden="true" role="dialog" aria-label="Laboratório"></section>
 
   <div class="toast glass" id="toast" role="status" aria-live="polite"></div>
 
