@@ -729,6 +729,10 @@
         </div>
         ${minimapaHTML(el)}
         <div class="tags">${chipsHTML(el)}</div>
+        <button type="button" class="lab-cta" data-z="${el.n}" data-n="${Math.max(Math.round(el.m) - el.n, 0)}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"/><ellipse cx="12" cy="12" rx="10" ry="4"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-60 12 12)"/></svg>
+          Montar ${el.nome} no laboratório
+        </button>
       </div>
       <div class="panel glass">
         <h3>${icone("prop")}Propriedades</h3>
@@ -779,7 +783,13 @@
     iniciarSim(el);
   }
 
-  panels.addEventListener("click", (e) => {
+  panels.addEventListener("click", async (e) => {
+    const cta = e.target.closest(".lab-cta");
+    if (cta) {
+      await abrirLab("atomo", cta);
+      window.LAB.atomoDefinir(+cta.dataset.z, +cta.dataset.n);
+      return;
+    }
     const b = e.target.closest("button[data-prop]");
     if (!b) return;
     panels.querySelectorAll(".abas button").forEach((x) => x.classList.toggle("on", x === b));
@@ -910,6 +920,7 @@
   function loopSim() {
     if (!sim.cv || !sim.cv.isConnected) return;
     sim.raf = requestAnimationFrame(loopSim);
+    if (document.body.classList.contains("lab-open")) return;
     passoSim();
     desenharSim();
   }
@@ -1147,6 +1158,7 @@
   $(".d-hero-area").addEventListener("click", (e) => { if (e.target === e.currentTarget) fecharDetalhe(); });
 
   document.addEventListener("keydown", (e) => {
+    if (window.LAB && window.LAB.estaAberto && window.LAB.estaAberto()) return; // o laboratório tem os próprios atalhos
     if (det.aberto) {
       if (e.key === "r" || e.key === "R") aleatorio();
       else if (e.key === "Escape") fecharDetalhe();
@@ -1156,6 +1168,10 @@
     }
     if ((e.key === "r" || e.key === "R") && document.activeElement !== search && !e.metaKey && !e.ctrlKey) {
       aleatorio();
+      return;
+    }
+    if ((e.key === "l" || e.key === "L") && document.activeElement !== search && !e.metaKey && !e.ctrlKey) {
+      abrirLab("atomo");
       return;
     }
     if (e.key === "/" && document.activeElement !== search) {
@@ -1229,6 +1245,7 @@
 
   function desenharAtomo(now) {
     atomo.raf = requestAnimationFrame(desenharAtomo);
+    if (document.body.classList.contains("lab-open")) return;
     const L = atomo.size;
     const c = L / 2;
     const R = L / 2 * 0.98;
@@ -1323,6 +1340,7 @@
   let ultimoQuadro = 0;
   function desenharFundo(now) {
     requestAnimationFrame(desenharFundo);
+    if (document.body.classList.contains("lab-open")) return; // o laboratório cobre a tela inteira
     // fora do efeito de dobra, ~30 fps bastam e aliviam o vidro desfocado por cima
     const emDobra = Math.abs(fundo.warp) > 0.02 || fundo.warpAlvo !== 0;
     if (!emDobra && now - ultimoQuadro < 32) return;
@@ -1434,9 +1452,50 @@
   document.fonts?.ready.then(moverPill);
   moverPill();
 
-  // Abrir direto um elemento pelo endereço (ex.: index.html#Fe)
+  // ---------------------------------------------------------------------------
+  // Laboratório (carregado só quando alguém abre, para a tabela abrir rápido)
+  // ---------------------------------------------------------------------------
+  const labBotao = $("#lab-open");
+  const LAB_ARQUIVOS = ["js/lab/fisica.js", "js/lab/base.js", "js/lab/atomo.js", "js/lab/decaimento.js", "js/lab/reator.js", "js/lab/estrela.js", "js/lab/acelerador.js", "js/lab/lab.js"];
+  let labPromessa = null;
+  function carregarLab() {
+    if (labPromessa) return labPromessa;
+    labPromessa = new Promise((resolve, reject) => {
+      const css = document.createElement("link");
+      css.rel = "stylesheet";
+      css.href = "css/lab.css";
+      document.head.appendChild(css);
+      LAB_ARQUIVOS.forEach((src, i) => {
+        const sc = document.createElement("script");
+        sc.src = src;
+        sc.async = false; // mantém a ordem
+        sc.onerror = () => { labPromessa = null; reject(new Error("Falha ao carregar " + src)); };
+        if (i === LAB_ARQUIVOS.length - 1) sc.onload = resolve;
+        document.body.appendChild(sc);
+      });
+    });
+    return labPromessa;
+  }
+  async function abrirLab(id = "atomo", origem = labBotao) {
+    labBotao.classList.add("carregando");
+    try {
+      await carregarLab();
+      const r = origem.getBoundingClientRect();
+      window.LAB.abrir(id, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+    } catch (e) {
+      avisar("Não consegui abrir o laboratório. Verifique a conexão.");
+    } finally {
+      labBotao.classList.remove("carregando");
+    }
+  }
+  labBotao.addEventListener("click", () => abrirLab("atomo"));
+  window.abrirLab = abrirLab;
+
+  // Abrir direto um elemento pelo endereço (ex.: index.html#Fe) ou o laboratório (#lab/atomo)
   const hash = decodeURIComponent(location.hash.slice(1));
-  if (hash) {
+  if (/^lab/i.test(hash)) {
+    setTimeout(() => abrirLab(hash.split("/")[1] || "atomo"), 300);
+  } else if (hash) {
     const alvo = elementos.find((e) => e.s.toLowerCase() === hash.toLowerCase() || String(e.n) === hash);
     if (alvo) setTimeout(() => abrirDetalhe(alvo.n), 1400);
   }
