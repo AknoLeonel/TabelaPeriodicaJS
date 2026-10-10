@@ -1067,9 +1067,35 @@
       resposta: Number(r.sigma.toFixed(3)), tol: 0.0011, rel: 0, unidade: "", passos: r.passos, texto: fixoS(r.sigma, 3),
     };
   }
+  // ajuste: dados com pequeno ruído; pede inclinação, intercepto, previsão ou R²
+  function exAjuste() {
+    const CEN = [
+      { ctx: "Num experimento de queda, mediu-se a velocidade v (m/s) em vários instantes t (s).", x: "t (s)", y: "v (m/s)", xs: [0.1, 0.2, 0.3, 0.4, 0.5], a: 9.8, b: 0, un: "m/s²", nomeA: "a aceleração (inclinação da reta)", casas: 2 },
+      { ctx: "Num resistor, mediu-se a tensão V (V) para várias correntes i (A).", x: "i (A)", y: "V (V)", xs: [0.1, 0.2, 0.3, 0.4, 0.5], a: inteiro(8, 40), b: 0, un: "Ω", nomeA: "a resistência (inclinação da reta)", casas: 1 },
+      { ctx: "Uma mola foi esticada com massas diferentes; mediu-se o comprimento L (cm) para cada força F (N).", x: "F (N)", y: "L (cm)", xs: [1, 2, 3, 4, 5], a: sorteia([0.5, 0.8, 1.2, 1.5, 2]), b: sorteia([10, 12, 15, 20]), un: "cm/N", nomeA: "a inclinação", casas: 2 },
+      { ctx: "Um líquido foi aquecido; mediu-se a temperatura T (°C) ao longo do tempo t (min).", x: "t (min)", y: "T (°C)", xs: [0, 2, 4, 6, 8], a: sorteia([1.5, 2, 2.5, 3]), b: sorteia([20, 22, 25]), un: "°C/min", nomeA: "a taxa de aquecimento (inclinação)", casas: 2 },
+    ];
+    const c = sorteia(CEN);
+    const amp = Math.abs(c.a * (c.xs[4] - c.xs[0])) * 0.02;
+    const ys = c.xs.map((x) => Number((c.a * x + c.b + (Math.random() * 2 - 1) * amp).toFixed(c.casas)));
+    const r = ajustar(c.xs.map((x, i) => ({ x, y: ys[i] })), { modo: "lin" });
+    const tab = `<div class="tab-rolar"><table class="tb"><thead><tr><th>${c.x}</th>${c.xs.map((x) => `<td>${numT(x, 3)}</td>`).join("")}</tr></thead><tbody><tr><th>${c.y}</th>${ys.map((y) => `<td>${fixoS(y, c.casas)}</td>`).join("")}</tr></tbody></table></div>`;
+    const grafico = { rotX: c.x, rotY: c.y, series: [{ tipo: "pontos", pts: c.xs.map((x, i) => [x, ys[i]]), rotulo: "medidas" }] };
+    const graficoOp = { modo: "dados", altura: 200 };
+    const q = sorteia(["a", "a", "b", "prev"]);
+    if (q === "b" && Math.abs(c.b) > 0) return { enunciado: `${c.ctx}${tab}Faça o ajuste linear y = a·x + b. Quanto vale o <b>coeficiente linear b</b> (onde a reta corta o eixo y)? Use 2 algarismos depois da vírgula.`, grafico, graficoOp, resposta: r.b, tol: Math.max(Math.abs(r.b) * 0.01, 0.02), unidade: c.y.match(/\(([^)]*)\)/)[1], passos: r.passos, texto: numT(r.b, 4) };
+    if (q === "prev") {
+      const xp = c.xs[4] + (c.xs[1] - c.xs[0]) * 2;
+      const yp = r.a * xp + r.b;
+      return { enunciado: `${c.ctx}${tab}Usando a reta ajustada, qual o valor previsto de y para <b>x = ${numT(xp, 3)}</b>? <small>(É uma extrapolação: use com cuidado em laboratório.)</small>`, grafico, graficoOp, resposta: yp, rel: 0.01, tol: 0.02, unidade: c.y.match(/\(([^)]*)\)/)[1], passos: r.passos.concat([{ t: `Previsão para x = ${numT(xp, 3)}`, h: `<div class="eq">ŷ = a·x + b = ${numT(r.a, 4)} × ${numT(xp, 3)} + ${numT(r.b, 4)} = <b>${numT(yp, 4)}</b></div>` }]), texto: numT(yp, 4) };
+    }
+    return { enunciado: `${c.ctx}${tab}Faça o ajuste linear (mínimos quadrados). Quanto vale ${c.nomeA}?`, grafico, graficoOp, resposta: r.a, rel: 0.01, tol: 0.005, unidade: c.un, passos: r.passos, texto: `${numT(r.a, 4)} ${c.un}` };
+  }
+
   function gerarExercicio(tipo) {
+    if (tipo === "ajuste") return exAjuste();
     if (tipo === "sig") tipo = sorteia(["sig-contar", "sig-arredondar", "sig-operacao"]);
-    const mapa = { "sig-contar": exContar, "sig-arredondar": exArredondar, "sig-operacao": exOperacao, estat: exEstat, incerteza: exIncerteza };
+    const mapa = { ajuste: exAjuste, "sig-contar": exContar, "sig-arredondar": exArredondar, "sig-operacao": exOperacao, estat: exEstat, incerteza: exIncerteza };
     return mapa[tipo] ? mapa[tipo]() : null;
   }
   const conferir = Q.conferir;

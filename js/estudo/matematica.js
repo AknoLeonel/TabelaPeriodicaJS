@@ -63,57 +63,10 @@
   }
   const css = (v, padrao) => getComputedStyle(document.documentElement).getPropertyValue(v).trim() || padrao;
 
-  // ---------- gráfico de função (canvas, sem animação contínua) ----------
-  function grafico(cv, alt = 240) {
-    let estado = null;
-    function desenhar() {
-      if (!estado) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const w = cv.clientWidth || 340, h = alt;
-      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-      const g = cv.getContext("2d");
-      g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      g.clearRect(0, 0, w, h);
-      const { pts, x0, x1, marcas = [], reta } = estado;
-      const ys = pts.map((p) => p[1]).filter((y) => isFinite(y)).sort((a, b) => a - b);
-      if (!ys.length) return;
-      // ignora picos de assíntotas (percentis)
-      let y0 = ys[Math.floor(ys.length * 0.02)], y1 = ys[Math.ceil(ys.length * 0.98) - 1];
-      y0 = Math.min(y0, 0); y1 = Math.max(y1, 0);
-      if (y1 - y0 < 1e-9) { y0 -= 1; y1 += 1; }
-      const py = (y1 - y0) * 0.08; y0 -= py; y1 += py;
-      const X_ = (x) => ((x - x0) / (x1 - x0)) * w, Y_ = (y) => h - ((y - y0) / (y1 - y0)) * h;
-      g.strokeStyle = css("--line-soft", "#232b36"); g.lineWidth = 1;
-      const passo = (v) => { const p = Math.pow(10, Math.floor(Math.log10(v / 5))); return [1, 2, 5, 10].map((k) => k * p).find((k) => v / k <= 8); };
-      const sx = passo(x1 - x0), sy = passo(y1 - y0);
-      g.fillStyle = css("--faint", "#7a8799"); g.font = "10.5px 'IBM Plex Mono', monospace";
-      for (let x = Math.ceil(x0 / sx) * sx; x <= x1; x += sx) { g.beginPath(); g.moveTo(X_(x), 0); g.lineTo(X_(x), h); g.stroke(); if (Math.abs(x) > 1e-9) g.fillText(String(+x.toPrecision(6)).replace(".", ","), X_(x) + 2, Math.min(Math.max(Y_(0) + 12, 12), h - 3)); }
-      for (let y = Math.ceil(y0 / sy) * sy; y <= y1; y += sy) { g.beginPath(); g.moveTo(0, Y_(y)); g.lineTo(w, Y_(y)); g.stroke(); if (Math.abs(y) > 1e-9) g.fillText(String(+y.toPrecision(6)).replace(".", ","), Math.min(Math.max(X_(0) + 3, 3), w - 40), Y_(y) - 2); }
-      g.strokeStyle = css("--muted", "#9ba7b6"); g.lineWidth = 1.2;
-      g.beginPath(); g.moveTo(0, Y_(0)); g.lineTo(w, Y_(0)); g.moveTo(X_(0), 0); g.lineTo(X_(0), h); g.stroke();
-      if (reta) { g.strokeStyle = css("--muted", "#9ba7b6"); g.setLineDash([5, 4]); g.beginPath(); g.moveTo(0, Y_(reta.m * x0 + reta.b)); g.lineTo(w, Y_(reta.m * x1 + reta.b)); g.stroke(); g.setLineDash([]); }
-      g.strokeStyle = COR; g.lineWidth = 2.2; g.lineJoin = "round";
-      g.beginPath();
-      let dentro = false, ant = null;
-      for (const [x, y] of pts) {
-        if (!isFinite(y) || (ant != null && Math.abs(y - ant) > (y1 - y0) * 3)) { dentro = false; ant = isFinite(y) ? y : null; continue; }
-        if (!dentro) { g.moveTo(X_(x), Y_(y)); dentro = true; } else g.lineTo(X_(x), Y_(y));
-        ant = y;
-      }
-      g.stroke();
-      for (const mk of marcas) {
-        g.fillStyle = mk.cor || css("--text", "#e8edf3"); g.strokeStyle = css("--bg", "#0f1318"); g.lineWidth = 2;
-        g.beginPath(); g.arc(X_(mk.x), Y_(mk.y), 4.5, 0, 6.3); g.fill(); g.stroke();
-      }
-    }
-    new ResizeObserver(debounce(desenhar, 100)).observe(cv);
-    return { mostrar(e) { estado = e; desenhar(); } };
-  }
-  function amostrar(ast, x0, x1, n = 500) {
-    const pts = [];
-    for (let i = 0; i <= n; i++) { const x = x0 + ((x1 - x0) * i) / n; let y; try { y = X.avaliar(ast, { x }); } catch (e) { y = NaN; } pts.push([x, y]); }
-    return pts;
-  }
+  // ---------- gráficos (componente comum em js/estudo/grafico.js) ----------
+  const fmt = (v) => E.fmtSig(v, 4);
+  const fn = (ast) => (x) => X.avaliar(ast, { x });
+  const AZUL = "#4aa3e0", VERMELHO = "#e5646e";
 
   // =====================================================================
   // 1. Equações
@@ -132,29 +85,43 @@
         if (id === "1") {
           const A = campo({ rotulo: "a", ph: "2", valor: "2" }), B = campo({ rotulo: "b", ph: "3", valor: "3" }), C = campo({ rotulo: "c", ph: "11", valor: "11" });
           const res = resultadoBox();
-          a.append(el("p", "dica-form", "Forma a·x + b = c. Aceita frações (1/3) e vírgula."), grade(A, B), C.el, res);
-          const calc = () => (n(A) == null || n(B) == null ? vazio(res, "Preencha a e b.") : mostrar(res, M.eq1({ a: n(A), b: n(B), c: n(C) || 0 })));
+          const gr = E.grafico({ aria: "Reta y = ax + b cruzando a altura c" });
+          a.append(el("p", "dica-form", "Forma a·x + b = c. Aceita frações (1/3) e vírgula."), grade(A, B), C.el, gr.el, res);
+          const calc = () => {
+            if (n(A) == null || n(B) == null) { gr.esconder(); return vazio(res, "Preencha a e b."); }
+            const va = n(A), vb = n(B), vc = n(C) || 0;
+            const r = M.eq1({ a: va, b: vb, c: vc });
+            mostrar(res, r);
+            if (!r.ok || va === 0) return gr.esconder();
+            const xs = (vc - vb) / va, larg = Math.max(4, Math.abs(xs) * 0.8);
+            gr.definir({ x: [xs - larg, xs + larg], series: [
+              { tipo: "funcao", f: (x) => va * x + vb, rotulo: "y = ax + b" },
+              { tipo: "hline", v: vc, cor: AZUL, tracejado: true, rotulo: "y = c" },
+              { tipo: "marca", x: xs, y: vc, rotulo: `x = ${fmt(xs)}` },
+            ] });
+          };
           ligar([A, B, C], calc); calc();
           return { recalcular: calc };
         }
         if (id === "2") {
           const A = campo({ rotulo: "a (coef. de x²)", ph: "1", valor: "1" }), B = campo({ rotulo: "b (coef. de x)", ph: "-5", valor: "-5" }), C = campo({ rotulo: "c (termo independente)", ph: "6", valor: "6" });
           const ex = exemplos([{ r: "x² − 5x + 6", v: [1, -5, 6] }, { r: "2x² + 3x − 2", v: [2, 3, -2] }, { r: "x² − 4x + 4", v: [1, -4, 4] }, { r: "x² + 2x + 5", v: [1, 2, 5] }, { r: "−x² + 9", v: [-1, 0, 9] }], (e) => { A.set(e.v[0]); B.set(e.v[1]); C.set(e.v[2]); calc(); });
-          const cv = el("canvas", "mt-cv");
-          const gr = grafico(cv, 220);
+          const gr = E.grafico({ aria: "Parábola de f(x) = ax² + bx + c" });
           const res = resultadoBox();
-          a.append(el("p", "dica-form", "Forma ax² + bx + c = 0. Se o termo não aparece, o coeficiente é 0."), grade(A, B), C.el, el("small", "dica", "Exemplos:"), ex.el, cv, res);
+          a.append(el("p", "dica-form", "Forma ax² + bx + c = 0. Se o termo não aparece, o coeficiente é 0."), grade(A, B), C.el, el("small", "dica", "Exemplos:"), ex.el, gr.el, res);
           function calc() {
-            if ([A, B, C].some((c) => n(c) == null)) { cv.hidden = true; return vazio(res, "Preencha a, b e c."); }
-            const r = M.eq2({ a: n(A), b: n(B), c: n(C) });
+            if ([A, B, C].some((c) => n(c) == null)) { gr.esconder(); return vazio(res, "Preencha a, b e c."); }
+            const va = n(A), vb = n(B), vc = n(C);
+            const r = M.eq2({ a: va, b: vb, c: vc });
             mostrar(res, r);
-            if (r.ok && n(A) !== 0) {
-              cv.hidden = false;
-              const xv = r.xv, larg = Math.max(4, ...(r.raizes || []).map((x) => Math.abs(x - xv) * 1.6));
-              const ast = X.ler(`${n(A)}*x^2 + ${n(B)}*x + ${n(C)}`.replace(/\+ -/g, "- "));
-              const marcas = [...(r.raizes || []).map((x) => ({ x, y: 0 })), { x: xv, y: r.yv, cor: COR }];
-              gr.mostrar({ pts: amostrar(ast, xv - larg, xv + larg), x0: xv - larg, x1: xv + larg, marcas });
-            } else cv.hidden = true;
+            if (!r.ok || va === 0) return gr.esconder();
+            const xv = r.xv, larg = Math.max(1.5, ...(r.raizes || []).map((x) => Math.abs(x - xv) * 2.2), Math.sqrt(Math.abs(r.yv / va)) * 2.2 || 0);
+            gr.definir({ x: [xv - larg, xv + larg], series: [
+              { tipo: "funcao", f: (x) => va * x * x + vb * x + vc, rotulo: "f(x) = ax² + bx + c" },
+              { tipo: "vline", v: xv, cor: "rgba(155,167,182,.55)", tracejado: true, largura: 1, rotulo: "eixo de simetria", etiqueta: false },
+              ...(r.raizes || []).map((x) => ({ tipo: "marca", x, y: 0, rotulo: `x = ${fmt(x)}` })),
+              { tipo: "marca", x: xv, y: r.yv, vazia: true, rotulo: `vértice (${fmt(xv)}; ${fmt(r.yv)})` },
+            ] });
           }
           ligar([A, B, C], calc); calc();
           return { recalcular: calc };
@@ -334,26 +301,20 @@
       return subAbas(raiz, [{ id: "ang", rotulo: "sen, cos, tg" }, { id: "ret", rotulo: "Triângulo retângulo" }, { id: "qq", rotulo: "Triângulo qualquer" }], (id, a) => {
         if (id === "ang") {
           const ang = campo({ rotulo: "Ângulo", ph: "30", valor: "150", unidades: ["°", "rad"], unidadePadrao: "°" });
-          const cv = el("canvas", "mt-cv mt-circ");
+          const gr = E.grafico({ igual: true, interativo: false, rotX: "cos", rotY: "sen", altura: (w) => Math.round(Math.min(Math.max(w * 0.62, 250), 340)), aria: "Círculo trigonométrico" });
           const res = resultadoBox();
-          a.append(ang.el, cv, res);
-          function desenhar(gr) {
-            const dpr = Math.min(window.devicePixelRatio || 1, 2), w = cv.clientWidth || 300, h = 230;
-            cv.width = w * dpr; cv.height = h * dpr;
-            const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
-            const r = 90, cx = w / 2, cy = h / 2, t = (gr * Math.PI) / 180;
-            g.strokeStyle = css("--line", "#2b3441"); g.lineWidth = 1;
-            g.beginPath(); g.moveTo(cx - r - 20, cy); g.lineTo(cx + r + 20, cy); g.moveTo(cx, cy - r - 15); g.lineTo(cx, cy + r + 15); g.stroke();
-            g.strokeStyle = css("--muted", "#9ba7b6"); g.beginPath(); g.arc(cx, cy, r, 0, 6.3); g.stroke();
-            const px = cx + r * Math.cos(t), py = cy - r * Math.sin(t);
-            g.strokeStyle = "#4aa3e0"; g.lineWidth = 3; g.beginPath(); g.moveTo(cx, cy); g.lineTo(px, cy); g.stroke();
-            g.strokeStyle = "#e5646e"; g.beginPath(); g.moveTo(px, cy); g.lineTo(px, py); g.stroke();
-            g.strokeStyle = COR; g.lineWidth = 2; g.beginPath(); g.moveTo(cx, cy); g.lineTo(px, py); g.stroke();
-            g.beginPath(); g.arc(cx, cy, 22, 0, -((((t % 6.2832) + 6.2832) % 6.2832) || 0.0001), true); g.stroke();
-            g.fillStyle = css("--text", "#e8edf3"); g.beginPath(); g.arc(px, py, 4.5, 0, 6.3); g.fill();
-            g.font = "12px 'IBM Plex Sans', sans-serif";
-            g.fillStyle = "#4aa3e0"; g.fillText("cos", (cx + px) / 2 - 10, cy + (Math.sin(t) >= 0 ? 16 : -8));
-            g.fillStyle = "#e5646e"; g.fillText("sen", px + (Math.cos(t) >= 0 ? 6 : -28), (cy + py) / 2);
+          a.append(ang.el, gr.el, res);
+          function desenhar(graus) {
+            const t = (graus * Math.PI) / 180, c = Math.cos(t), sn = Math.sin(t);
+            const volta = ((t % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+            gr.definir({ x: [-1.35, 1.35], y: [-1.3, 1.3], nomeX: "cos", nomeY: "sen", series: [
+              { tipo: "circulo", c: [0, 0], r: 1, cor: "rgba(155,167,182,.7)" },
+              { tipo: "arco", c: [0, 0], r: 0.24, a0: 0, a1: volta || 0.0001, cor: COR, rotulo: `${fmt(((graus % 360) + 360) % 360)}°` },
+              { tipo: "seg", de: [0, 0], para: [c, 0], cor: AZUL, largura: 3.5, rotulo: `cos = ${fmt(c)}` },
+              { tipo: "seg", de: [c, 0], para: [c, sn], cor: VERMELHO, largura: 3.5, rotulo: `sen = ${fmt(sn)}` },
+              { tipo: "seg", de: [0, 0], para: [c, sn], cor: COR, largura: 2.2, etiqueta: false },
+              { tipo: "marca", x: c, y: sn, rotulo: "P" },
+            ] });
           }
           function calc() {
             if (n(ang) == null) return vazio(res, "Digite o ângulo.");
@@ -362,7 +323,6 @@
             desenhar(ang.unidade() === "rad" ? (n(ang) * 180) / Math.PI : n(ang));
           }
           ligar([ang], calc); calc();
-          new ResizeObserver(debounce(calc, 120)).observe(cv);
           return { recalcular: calc };
         }
         if (id === "ret") {
@@ -398,7 +358,7 @@
   // 5. Vetores
   // =====================================================================
   FERR.push({
-    id: "vetores", nome: "Vetores",
+    id: "vetores", nome: "Vetores", prat: "vetor",
     resumo: "Soma, módulo, ângulo, produto escalar e vetorial em 2D e 3D, com desenho das setas.",
     teoria: `<p>Um <b>vetor</b> tem módulo (tamanho), direção e sentido. Em componentes: u = (u<sub>x</sub>; u<sub>y</sub>; u<sub>z</sub>).</p>
       <ul><li>Soma: componente a componente. Módulo: |u| = √(u<sub>x</sub>² + u<sub>y</sub>² + u<sub>z</sub>²).</li>
@@ -408,36 +368,27 @@
       const op = seletor([["soma", "u + v"], ["sub", "u − v"], ["modulo", "Módulo e direção de u"], ["polar", "Componentes de módulo e ângulo"], ["escalar", "Produto escalar e ângulo"], ["vetorial", "Produto vetorial u × v"]], "soma");
       const u = campo({ rotulo: "u = componentes (separe por ; ou espaço)", ph: "(3; 4)", tipo: "texto", valor: "(3; 4)" });
       const v = campo({ rotulo: "v", ph: "(1; 2)", tipo: "texto", valor: "(1; -2)" });
-      const cv = el("canvas", "mt-cv");
+      const gr = E.grafico({ igual: true, aria: "Desenho dos vetores" });
       const res = resultadoBox();
-      raiz.append(rotulo("Operação", op), u.el, v.el, cv, res);
+      raiz.append(rotulo("Operação", op), u.el, v.el, gr.el, res);
       function desenhar(r) {
-        const vets = [];
         const U = M.lerVetor(u.texto()), V = M.lerVetor(v.texto());
-        if (op.value === "polar") { if (r.ok) vets.push({ v: r.u, cor: COR, n: "u" }); }
+        const series = [];
+        const dois = (w) => w && w.length === 2;
+        if (op.value === "polar") { if (r.ok && dois(r.u)) series.push({ tipo: "seg", de: [0, 0], para: [r.u[0], 0], cor: AZUL, tracejado: true, rotulo: `x: ${fmt(r.u[0])}` }, { tipo: "seg", de: [r.u[0], 0], para: r.u, cor: VERMELHO, tracejado: true, rotulo: `y: ${fmt(r.u[1])}` }, { tipo: "vetor", para: r.u, cor: COR, rotulo: "u" }); }
         else {
-          if (U && U.length === 2) vets.push({ v: U, cor: "#4aa3e0", n: "u" });
-          if (V && V.length === 2 && op.value !== "modulo") vets.push({ v: V, cor: "#e5646e", n: "v" });
-          if (r.ok && r.r && r.r.length === 2) vets.push({ v: r.r, cor: COR, n: op.value === "soma" ? "u+v" : "u−v" });
+          if (dois(U)) series.push({ tipo: "vetor", para: U, cor: AZUL, rotulo: "u" });
+          if (dois(V) && op.value !== "modulo") series.push({ tipo: "vetor", para: V, cor: VERMELHO, rotulo: "v" });
+          if (r.ok && dois(r.r) && dois(U) && dois(V)) {
+            // regra do polígono: v desenhado a partir da ponta de u (ou −v, na subtração)
+            if (op.value === "soma") series.push({ tipo: "vetor", de: U, para: r.r, cor: VERMELHO, tracejado: true, largura: 1.6, etiqueta: false, legenda: false });
+            if (op.value === "sub") series.push({ tipo: "vetor", de: U, para: r.r, cor: VERMELHO, tracejado: true, largura: 1.6, rotulo: "−v" });
+            series.push({ tipo: "vetor", para: r.r, cor: COR, rotulo: op.value === "soma" ? "u + v" : "u − v" });
+          }
         }
-        if (!vets.length) { cv.hidden = true; return; }
-        cv.hidden = false;
-        const dpr = Math.min(window.devicePixelRatio || 1, 2), w = cv.clientWidth || 300, h = 220;
-        cv.width = w * dpr; cv.height = h * dpr;
-        const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
-        const lim = Math.max(1, ...vets.flatMap((x) => x.v.map(Math.abs))) * 1.2;
-        const esc = Math.min(w, h) / 2 / lim, cx = w / 2, cy = h / 2;
-        g.strokeStyle = css("--line-soft", "#232b36");
-        for (let k = -Math.floor(lim); k <= lim; k++) { g.beginPath(); g.moveTo(cx + k * esc, 0); g.lineTo(cx + k * esc, h); g.moveTo(0, cy - k * esc); g.lineTo(w, cy - k * esc); g.stroke(); }
-        g.strokeStyle = css("--muted", "#9ba7b6"); g.beginPath(); g.moveTo(0, cy); g.lineTo(w, cy); g.moveTo(cx, 0); g.lineTo(cx, h); g.stroke();
-        g.font = "600 12px 'IBM Plex Sans', sans-serif";
-        for (const it of vets) {
-          const ex = cx + it.v[0] * esc, ey = cy - it.v[1] * esc, ang = Math.atan2(ey - cy, ex - cx);
-          g.strokeStyle = g.fillStyle = it.cor; g.lineWidth = 2.5;
-          g.beginPath(); g.moveTo(cx, cy); g.lineTo(ex, ey); g.stroke();
-          g.beginPath(); g.moveTo(ex, ey); g.lineTo(ex - 10 * Math.cos(ang - 0.4), ey - 10 * Math.sin(ang - 0.4)); g.lineTo(ex - 10 * Math.cos(ang + 0.4), ey - 10 * Math.sin(ang + 0.4)); g.closePath(); g.fill();
-          g.fillText(it.n, ex + 6, ey - 6);
-        }
+        if (!series.length) return gr.esconder();
+        const lim = Math.max(1, ...series.flatMap((s) => [...(s.para || []), ...(s.de || [])].map(Math.abs))) * 1.25;
+        gr.definir({ x: [-lim, lim], y: [-lim, lim], series });
       }
       function calc() {
         v.el.hidden = op.value === "modulo" || op.value === "polar";
@@ -447,7 +398,6 @@
         desenhar(r);
       }
       ligar([op, u, v], calc); calc();
-      new ResizeObserver(debounce(calc, 120)).observe(cv);
       return { recalcular: calc };
     },
   });
@@ -474,30 +424,32 @@
         const ex = exemplos(id === "d"
           ? [{ r: "x³ − 2x + 1", f: "x^3 - 2x + 1" }, { r: "x²·sen x", f: "x^2*sin(x)" }, { r: "e^(2x)/x", f: "e^(2x)/x" }, { r: "ln(x² + 1)", f: "ln(x^2+1)" }, { r: "√(3x + 1)", f: "sqrt(3x+1)" }]
           : [{ r: "3x² + 2x − 1", f: "3x^2 + 2x - 1" }, { r: "sen(2x)", f: "sin(2x)" }, { r: "1/x", f: "1/x" }, { r: "e^(−x)", f: "e^(-x)" }, { r: "(x + 1)³", f: "(x+1)^3" }], (e) => { f.set(e.f); calc(); });
-        const cv = el("canvas", "mt-cv");
-        const gr = grafico(cv, 220);
+        const gr = E.grafico({ aria: id === "d" ? "Gráfico da função, da derivada e da reta tangente" : "Área sob o gráfico" });
         const res = resultadoBox();
-        a.append(f.el, tec, el("small", "dica", "Exemplos:"), ex.el, id === "d" ? x0.el : grade(la, lb), cv, res);
+        a.append(f.el, tec, el("small", "dica", "Exemplos:"), ex.el, id === "d" ? x0.el : grade(la, lb), gr.el, res);
         function calc() {
-          if (!f.texto()) { cv.hidden = true; return vazio(res, "Digite a função."); }
+          if (!f.texto()) { gr.esconder(); return vazio(res, "Digite a função."); }
           if (id === "d") {
             const r = M.derivada({ f: f.texto(), x0: n(x0) });
             mostrar(res, r);
-            if (r.ok) {
-              const ast = X.ler(f.texto()), c = n(x0) != null ? n(x0) : 0;
-              const marcas = r.tangente ? [{ x: c, y: X.avaliar(ast, { x: c }), cor: COR }] : [];
-              cv.hidden = false; gr.mostrar({ pts: amostrar(ast, c - 4, c + 4), x0: c - 4, x1: c + 4, marcas, reta: r.tangente });
-            } else cv.hidden = true;
+            if (!r.ok) return gr.esconder();
+            const ff = fn(X.ler(f.texto())), c = n(x0) != null ? n(x0) : 0;
+            const series = [{ tipo: "funcao", f: ff, rotulo: "f(x)" }, { tipo: "funcao", f: fn(r.d), cor: AZUL, tracejado: true, largura: 1.8, rotulo: "f′(x)" }];
+            if (r.tangente) series.push({ tipo: "funcao", f: (x) => r.tangente.m * x + r.tangente.b, cor: "#c9d1db", largura: 1.4, rotulo: "tangente" }, { tipo: "marca", x: c, y: ff(c), rotulo: `inclinação ${fmt(r.tangente.m)}` });
+            gr.definir({ x: [c - 4, c + 4], series });
             return;
           }
           const A = n(la), B = n(lb);
           const r = M.integral({ f: f.texto(), a: A, b: B });
           mostrar(res, r);
-          if (r.ok) {
-            const ast = X.ler(f.texto());
-            const lo = A != null && B != null ? Math.min(A, B) : -3, hi = A != null && B != null ? Math.max(A, B) : 3, m = Math.max(1, (hi - lo) * 0.4);
-            cv.hidden = false; gr.mostrar({ pts: amostrar(ast, lo - m, hi + m), x0: lo - m, x1: hi + m, marcas: A != null && B != null ? [{ x: A, y: 0, cor: COR }, { x: B, y: 0, cor: COR }] : [] });
-          } else cv.hidden = true;
+          if (!r.ok) return gr.esconder();
+          const ff = fn(X.ler(f.texto()));
+          const temLim = A != null && B != null;
+          const lo = temLim ? Math.min(A, B) : -3, hi = temLim ? Math.max(A, B) : 3, m = Math.max(1, (hi - lo) * 0.4);
+          const series = [{ tipo: "funcao", f: ff, rotulo: "f(x)" }];
+          if (temLim) series.unshift({ tipo: "area", f: ff, a: A, b: B, rotulo: isFinite(r.valor) ? `área com sinal = ${fmt(r.valor)}` : "área" });
+          if (temLim) series.push({ tipo: "vline", v: A, cor: "rgba(155,167,182,.6)", largura: 1, rotulo: "a", legenda: false }, { tipo: "vline", v: B, cor: "rgba(155,167,182,.6)", largura: 1, rotulo: "b", legenda: false });
+          gr.definir({ x: [lo - m, hi + m], series });
         }
         ligar([f, x0, la, lb], calc); calc();
         return { recalcular: calc };
@@ -509,7 +461,7 @@
   // 7. Funções e gráficos
   // =====================================================================
   FERR.push({
-    id: "funcoes", nome: "Gráficos",
+    id: "funcoes", nome: "Gráficos", prat: "grafico",
     resumo: "Digite f(x) e veja o gráfico, as raízes, os máximos e mínimos e uma tabela de valores.",
     teoria: `<p>O <b>gráfico</b> de f mostra, para cada x, a altura f(x). Ler o gráfico responde a muitas perguntas:</p>
       <ul><li><b>Raízes</b>: onde o gráfico cruza o eixo x (f(x) = 0).</li>
@@ -520,17 +472,19 @@
       const f = campo({ rotulo: "f(x) =", ph: "Ex.: x^3 - 3x", tipo: "texto", valor: "x^3 - 3x" });
       const a = campo({ rotulo: "x mínimo", ph: "-5", valor: "-3" }), b = campo({ rotulo: "x máximo", ph: "5", valor: "3" });
       const ex = exemplos([{ r: "x³ − 3x", f: "x^3 - 3x", a: -3, b: 3 }, { r: "parábola", f: "x^2 - 4x + 3", a: -1, b: 5 }, { r: "seno", f: "sin(x)", a: -7, b: 7 }, { r: "exponencial", f: "2^x", a: -3, b: 4 }, { r: "1/x", f: "1/x", a: -4, b: 4 }, { r: "decaimento", f: "100*exp(-0.3x)", a: 0, b: 15 }], (e) => { f.set(e.f); a.set(e.a); b.set(e.b); calc(); });
-      const cv = el("canvas", "mt-cv mt-grande");
-      const gr = grafico(cv, 280);
+      const gr = E.grafico({ altura: (w) => Math.round(Math.min(Math.max(w * 0.62, 260), 400)), aria: "Gráfico de f(x)" });
       const res = resultadoBox();
-      raiz.append(f.el, el("small", "dica", "Exemplos:"), ex.el, grade(a, b), cv, res);
+      raiz.append(f.el, el("small", "dica", "Exemplos:"), ex.el, grade(a, b), gr.el, res);
       function calc() {
-        if (!f.texto()) { cv.hidden = true; return vazio(res, "Digite a função."); }
+        if (!f.texto()) { gr.esconder(); return vazio(res, "Digite a função."); }
         const r = M.estudoFuncao({ f: f.texto(), x0: n(a) ?? -10, x1: n(b) ?? 10 });
         mostrar(res, r);
-        if (!r.ok) { cv.hidden = true; return; }
-        cv.hidden = false;
-        gr.mostrar({ pts: r.pts, x0: n(a) ?? -10, x1: n(b) ?? 10, marcas: [...r.raizes.map((x) => ({ x, y: 0 })), ...r.extremos.map((e) => ({ x: e.x, y: e.y, cor: COR }))] });
+        if (!r.ok) return gr.esconder();
+        gr.definir({ x: [n(a) ?? -10, n(b) ?? 10], series: [
+          { tipo: "funcao", f: fn(r.ast), rotulo: "f(x)" },
+          ...r.raizes.map((x) => ({ tipo: "marca", x, y: 0, vazia: true, rotulo: `raiz ${fmt(x)}` })),
+          ...r.extremos.map((e) => ({ tipo: "marca", x: e.x, y: e.y, rotulo: `${e.tipo === "máximo" ? "máx" : "mín"} (${fmt(e.x)}; ${fmt(e.y)})` })),
+        ] });
       }
       ligar([f, a, b], calc); calc();
       return { recalcular: calc };

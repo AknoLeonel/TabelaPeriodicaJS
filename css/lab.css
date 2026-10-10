@@ -548,3 +548,43 @@ select.sel { height: 46px; width: 100%; margin: 0; padding: 0 12px; border-radiu
 .area-dados::placeholder { color: var(--faint); }
 .teclado-rola { overflow-x: auto; scrollbar-width: none; }
 .teclado-rola button { flex: none; padding: 0 10px; font-size: 15px; }
+
+/* ---------- gráfico do estudo (js/estudo/grafico.js) ---------- */
+.gf { margin: 0; display: flex; flex-direction: column; border-radius: var(--radius-s); background: #0b0e12; border: 1px solid var(--line); overflow: hidden; min-width: 0; }
+.gf[hidden] { display: none; }
+.gf-cv { display: block; width: 100%; height: 260px; touch-action: pan-y; cursor: crosshair; }
+.gf-cv.gf-interativo { cursor: grab; }
+.gf-cv.arrastando { cursor: grabbing; }
+.gf-rod { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 7px 10px; border-top: 1px solid var(--line-soft); background: var(--panel); font-size: 12.5px; color: var(--muted); }
+.gf-leg { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.gf-leg:empty { display: none; }
+.gf-leg span { display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
+.gf-sw { width: 16px; height: 0; border-top: 3px solid var(--c); border-radius: 2px; }
+.gf-sw.tr { border-top-style: dashed; border-top-width: 2px; }
+.gf-sw.pt { width: 9px; height: 9px; border: 0; border-radius: 50%; background: var(--c); }
+.gf-leitura { flex: 1 1 180px; min-width: 0; font: 12.5px/1.4 var(--f-mono); color: var(--faint); font-variant-numeric: tabular-nums; }
+.gf-leitura.on { color: var(--text); }
+.gf-leitura b { font-weight: 600; color: var(--m-c); }
+.gf-ctl { display: flex; gap: 4px; margin-left: auto; }
+.gf-ctl:empty { display: none; }
+.gf-bt { width: 32px; height: 30px; border-radius: 6px; cursor: pointer; background: var(--panel-2); border: 1px solid var(--line); color: var(--text); font: 600 15px var(--f-mono); display: grid; place-items: center; }
+.gf-bt:hover { background: var(--panel-3); }
+.ex-en .gf { margin-top: 10px; }
+
+/* alternativas (exercícios de múltipla escolha) */
+.ex-opcoes { display: flex; flex-direction: column; gap: 8px; }
+.ex-opcoes[hidden], .ex-resp[hidden] { display: none; }
+.ex-op {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 10px 14px; cursor: pointer; text-align: left;
+  border-radius: var(--radius-s); background: var(--panel); border: 1px solid var(--line); color: var(--text); font-size: 15px; line-height: 1.4;
+  transition: border-color 0.15s, background 0.15s;
+}
+.ex-op:hover:not(:disabled) { border-color: var(--m-c); background: var(--panel-2); }
+.ex-op i { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 600 12.5px var(--f-mono); font-style: normal; border: 1px solid var(--line); color: var(--muted); }
+.ex-op span { min-width: 0; overflow-wrap: anywhere; }
+.ex-op:disabled { cursor: default; opacity: 0.6; }
+.ex-op.certa { opacity: 1; border-color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, var(--panel)); }
+.ex-op.certa i { background: var(--ok); border-color: var(--ok); color: #0b0e12; }
+.ex-op.errada { opacity: 1; border-color: var(--err); background: color-mix(in srgb, var(--err) 12%, var(--panel)); }
+.ex-op.errada i { background: var(--err); border-color: var(--err); color: #0b0e12; }
+.gf-rod[hidden] { display: none; }

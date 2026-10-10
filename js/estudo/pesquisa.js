@@ -53,45 +53,13 @@
   const rotulo = (txt, filho) => { const w = el("label", "campo"); w.append(el("span", "c-rot", txt), filho); return w; };
   const seletor = (opcoes, valor) => { const s = el("select", "sel"); opcoes.forEach(([v, t]) => { const o = el("option", "", t); o.value = v; s.appendChild(o); }); if (valor != null) s.value = valor; return s; };
 
-  // canvas nítido em qualquer tela
-  function prepararCanvas(cv, alt) {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const w = cv.clientWidth || 340;
-    cv.width = Math.round(w * dpr); cv.height = Math.round(alt * dpr);
-    const g = cv.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, w, alt);
-    return { g, w, h: alt };
-  }
-  const css = (v, padrao) => getComputedStyle(document.documentElement).getPropertyValue(v).trim() || padrao;
-  function eixos(g, w, h, m, xs, ys, rotX, rotY) {
-    let x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-    if (x0 === x1) { x0 -= 1; x1 += 1; }
-    if (y0 === y1) { y0 -= 1; y1 += 1; }
-    const px = (x1 - x0) * 0.06, py = (y1 - y0) * 0.1;
-    x0 -= px; x1 += px; y0 -= py; y1 += py;
-    const X_ = (x) => m.l + ((x - x0) / (x1 - x0)) * (w - m.l - m.r);
-    const Y_ = (y) => h - m.b - ((y - y0) / (y1 - y0)) * (h - m.t - m.b);
-    g.strokeStyle = css("--line", "#2b3441"); g.lineWidth = 1;
-    g.fillStyle = css("--faint", "#7a8799"); g.font = "11px 'IBM Plex Mono', monospace";
-    for (let k = 0; k <= 4; k++) {
-      const yv = y0 + ((y1 - y0) * k) / 4, yy = Y_(yv);
-      g.beginPath(); g.moveTo(m.l, yy); g.lineTo(w - m.r, yy); g.stroke();
-      g.textAlign = "right"; g.fillText(P.numT(yv, 3), m.l - 6, yy + 4);
-      const xv = x0 + ((x1 - x0) * k) / 4, xx = X_(xv);
-      g.textAlign = "center"; g.fillText(P.numT(xv, 3), xx, h - m.b + 15);
-    }
-    g.font = "12px 'IBM Plex Sans', sans-serif"; g.fillStyle = css("--muted", "#9ba7b6");
-    g.textAlign = "right"; g.fillText(rotX, w - m.r, h - 4);
-    g.textAlign = "left"; g.fillText(rotY, m.l, 12);
-    return { X: X_, Y: Y_, x0, x1 };
-  }
+  const fmt = (v, k = 4) => E.fmtSig(v, k);
 
   // =====================================================================
   // 1. Ajuste linear
   // =====================================================================
   FERR.push({
-    id: "ajuste", nome: "Ajuste linear",
+    id: "ajuste", nome: "Ajuste linear", prat: "ajuste",
     resumo: "Cole seus dados (x, y e, se tiver, σy) e obtenha a melhor reta com incertezas, R², resíduos e gráfico.",
     teoria: `<p>O <b>método dos mínimos quadrados</b> escolhe a reta y = a·x + b que torna mínima a soma dos quadrados das distâncias verticais entre os pontos e a reta.</p>
       <div class="eq">a = <span class="frac"><span>S<sub>xy</sub></span><span>S<sub>xx</sub></span></span> &nbsp;&nbsp; b = ȳ − a·x̄</div>
@@ -113,8 +81,11 @@
         }[id];
         dados.value = D.join("\n"); modo.value = id === "e" ? "exp" : id === "p" ? "pot" : "lin"; cbPon.checked = id === "o"; calc();
       } });
-      const cv = el("canvas", "pq-cv"); const cvR = el("canvas", "pq-cv pq-res");
-      const graf = el("div", "pq-graf"); graf.append(cv, el("small", "dica", "Resíduos (y − reta): devem se espalhar ao acaso em torno de zero."), cvR);
+      const gr = E.grafico({ modo: "dados", altura: (w) => Math.round(Math.min(Math.max(w * 0.5, 230), 330)), aria: "Pontos medidos e reta ajustada" });
+      const grOrig = E.grafico({ modo: "dados", altura: (w) => Math.round(Math.min(Math.max(w * 0.45, 210), 300)), aria: "Dados originais e curva ajustada" });
+      const grR = E.grafico({ modo: "dados", interativo: false, altura: 150, aria: "Resíduos" });
+      const rotOrig = el("small", "dica", "Nos eixos originais (a curva é a reta ajustada desfeita a troca de variáveis):");
+      const graf = el("div", "pq-graf"); graf.append(gr.el, rotOrig, grOrig.el, el("small", "dica", "Resíduos (ponto − reta): devem se espalhar ao acaso em torno de zero. Se formam uma curva, o modelo não serve."), grR.el);
       const res = resultadoBox();
       const bts = el("div", "linha-bt");
       raiz.append(el("span", "c-rot", "Dados: uma linha por ponto (cole da planilha; vírgula decimal ok)"), dados, el("small", "dica", "Exemplos:"), ex.el, rotulo("Modelo", modo), ori, pon, xp.el, graf, bts, res);
@@ -122,24 +93,26 @@
       function desenhar() {
         if (!ult || !ult.ok) { graf.hidden = true; return; }
         graf.hidden = false;
-        const r = ult, Xs = r.X, Ys = r.Y;
-        let { g, w, h } = prepararCanvas(cv, 230);
-        const m = { l: 62, r: 12, t: 18, b: 26 };
-        const ex_ = eixos(g, w, h, m, Xs, Ys.concat(r.sY ? Ys.map((y, i) => y + r.sY[i]).concat(Ys.map((y, i) => y - r.sY[i])) : []), P.TRANSF[r.modo].tx, P.TRANSF[r.modo].ty);
-        g.strokeStyle = COR; g.lineWidth = 2;
-        g.beginPath(); g.moveTo(ex_.X(ex_.x0), ex_.Y(r.a * ex_.x0 + r.b)); g.lineTo(ex_.X(ex_.x1), ex_.Y(r.a * ex_.x1 + r.b)); g.stroke();
-        g.strokeStyle = css("--text", "#e8edf3"); g.fillStyle = css("--text", "#e8edf3"); g.lineWidth = 1.2;
-        Xs.forEach((x, i) => {
-          if (r.sY) { g.beginPath(); g.moveTo(ex_.X(x), ex_.Y(Ys[i] - r.sY[i])); g.lineTo(ex_.X(x), ex_.Y(Ys[i] + r.sY[i])); g.stroke(); }
-          g.beginPath(); g.arc(ex_.X(x), ex_.Y(Ys[i]), 3.5, 0, 6.3); g.fill();
-        });
-        ({ g, w, h } = prepararCanvas(cvR, 110));
-        const res_ = r.residuos;
-        const lim = Math.max(...res_.map(Math.abs), ...(r.sY || [0])) || 1;
-        const er = eixos(g, w, h, { l: 62, r: 12, t: 10, b: 22 }, Xs, [-lim, lim], "", "");
-        g.strokeStyle = css("--muted", "#9ba7b6"); g.setLineDash([4, 4]); g.beginPath(); g.moveTo(er.X(er.x0), er.Y(0)); g.lineTo(er.X(er.x1), er.Y(0)); g.stroke(); g.setLineDash([]);
-        g.fillStyle = COR;
-        Xs.forEach((x, i) => { g.beginPath(); g.arc(er.X(x), er.Y(res_[i]), 3.5, 0, 6.3); g.fill(); });
+        const r = ult, T = P.TRANSF[r.modo];
+        const pts = r.X.map((x, i) => [x, r.Y[i], r.sY ? r.sY[i] : 0]);
+        gr.definir({ rotX: T.tx, rotY: T.ty, nomeX: T.tx, nomeY: T.ty, series: [
+          { tipo: "funcao", f: (x) => r.a * x + r.b, rotulo: `reta: ${T.ty} = ${fmt(r.a)}·${T.tx} ${r.b < 0 ? "−" : "+"} ${fmt(Math.abs(r.b))} (R² = ${fmt(r.r2, 5)})` },
+          { tipo: "pontos", pts, cor: "#e8edf3", rotulo: "medidas" },
+        ] });
+        const naoLinear = r.modo !== "lin" && r.predizer && r.pontos;
+        rotOrig.hidden = !naoLinear;
+        if (naoLinear) {
+          const xs = r.pontos.map((p) => p.x), lo = Math.min(...xs), hi = Math.max(...xs);
+          grOrig.definir({ rotX: "x", rotY: "y", series: [
+            { tipo: "funcao", f: (x) => { const q = r.predizer(x); return q && q.ok ? q.y : NaN; }, dominio: [lo - (hi - lo) * 0.05, hi + (hi - lo) * 0.05], rotulo: "curva ajustada" },
+            { tipo: "pontos", pts: r.pontos.map((p) => [p.x, p.y]), cor: "#e8edf3", rotulo: "medidas" },
+          ] });
+        } else grOrig.esconder();
+        const lim = Math.max(...r.residuos.map(Math.abs), ...(r.sY || [0])) * 1.3 || 1;
+        grR.definir({ y: [-lim, lim], rotY: "resíduo", nomeX: T.tx, nomeY: "resíduo", series: [
+          { tipo: "hline", v: 0, cor: "rgba(155,167,182,.8)", tracejado: true, legenda: false },
+          { tipo: "pontos", pts: r.X.map((x, i) => [x, r.residuos[i], r.sY ? r.sY[i] : 0]), rotulo: "resíduos", legenda: false },
+        ] });
       }
       function calc() {
         const t = dados.value.trim();
@@ -162,7 +135,6 @@
       dados.addEventListener("input", debounce(calc, 300));
       [modo, cbOri, cbPon].forEach((c) => c.addEventListener("change", calc));
       xp.input.addEventListener("input", debounce(calc, 300));
-      new ResizeObserver(debounce(desenhar, 100)).observe(cv);
       calc();
       return { recalcular: calc };
     },
@@ -291,30 +263,25 @@
       dados.value = "9,81 9,79 9,83 9,80 9,82 9,95";
       const conf = seletor([["0.9", "90%"], ["0.95", "95%"], ["0.99", "99%"]], "0.95");
       const un = campo({ rotulo: "Unidade (opcional)", ph: "Ex.: m/s²", tipo: "texto", valor: "m/s²" });
-      const cv = el("canvas", "pq-cv");
+      const gr = E.grafico({ modo: "dados", interativo: false, altura: (w) => Math.round(Math.min(Math.max(w * 0.38, 190), 260)), aria: "Histograma das medidas" });
       const exclu = el("div", "chips quebra");
       const res = resultadoBox();
       const bts = el("div", "linha-bt");
-      raiz.append(el("span", "c-rot", "Medidas (separadas por espaço, ; ou uma por linha)"), dados, grade(rotulo("Confiança", conf), un), cv, el("small", "dica", "Toque numa medida para excluí-la do cálculo (e de novo para incluir)."), exclu, bts, res);
+      raiz.append(el("span", "c-rot", "Medidas (separadas por espaço, ; ou uma por linha)"), dados, grade(rotulo("Confiança", conf), un), gr.el, el("small", "dica", "Toque numa medida para excluí-la do cálculo (e de novo para incluir)."), exclu, bts, res);
       const excluir = new Set();
       let ult = null, vals = [];
       function desenhar() {
-        if (!ult || !ult.ok) { cv.hidden = true; return; }
-        cv.hidden = false;
-        const { g, w, h } = prepararCanvas(cv, 140);
+        if (!ult || !ult.ok) return gr.esconder();
         const bins = ult.bins || [];
-        const max = Math.max(...bins.map((b) => b.c), 1);
-        const m = { l: 12, r: 12, t: 10, b: 24 };
-        const bw = (w - m.l - m.r) / Math.max(bins.length, 1);
-        g.fillStyle = css("--panel-3", "#252d38"); g.strokeStyle = css("--line", "#2b3441");
-        bins.forEach((b, i) => { const hh = ((h - m.t - m.b) * b.c) / max; g.fillRect(m.l + i * bw + 2, h - m.b - hh, bw - 4, hh); });
-        const lo = bins.length ? bins[0].lo : 0, hi = bins.length ? bins[bins.length - 1].hi : 1;
-        const Xp = (x) => m.l + ((x - lo) / (hi - lo || 1)) * (w - m.l - m.r);
-        g.strokeStyle = COR; g.lineWidth = 2;
-        g.beginPath(); g.moveTo(Xp(ult.media), m.t); g.lineTo(Xp(ult.media), h - m.b); g.stroke();
-        g.fillStyle = css("--faint", "#7a8799"); g.font = "11px 'IBM Plex Mono', monospace"; g.textAlign = "left";
-        g.fillText(P.numT(lo, 4), m.l, h - 6); g.textAlign = "right"; g.fillText(P.numT(hi, 4), w - m.r, h - 6);
-        g.textAlign = "center"; g.fillStyle = COR; g.fillText("x̄", Xp(ult.media), h - 6);
+        const u = un.texto() ? ` ${un.texto()}` : "";
+        const lo = bins.length ? bins[0].lo : ult.media - 1, hi = bins.length ? bins[bins.length - 1].hi : ult.media + 1;
+        const folga = (hi - lo) * 0.08 || 0.1;
+        gr.definir({ x: [Math.min(lo, ult.media - ult.s) - folga, Math.max(hi, ult.media + ult.s) + folga], zeroY: true, rotX: `medida${u}`, rotY: "quantas", nomeX: "medida", series: [
+          { tipo: "barras", barras: bins.map((b) => ({ a: b.lo, b: b.hi, v: b.c, nota: b.c === 1 ? "medida" : "medidas" })), cor: "#9ba7b6", rotulo: "medidas por faixa" },
+          { tipo: "vline", v: ult.media, rotulo: `média ${fmt(ult.media, 5)}` },
+          { tipo: "vline", v: ult.media - ult.s, tracejado: true, largura: 1, cor: "#4aa3e0", rotulo: "−s", legenda: false },
+          { tipo: "vline", v: ult.media + ult.s, tracejado: true, largura: 1, cor: "#4aa3e0", rotulo: "+s (desvio-padrão)", legenda: false },
+        ] });
       }
       function chips() {
         exclu.innerHTML = "";
@@ -339,7 +306,6 @@
       }
       dados.addEventListener("input", debounce(calc, 300));
       conf.addEventListener("change", () => calc(true)); un.input.addEventListener("input", debounce(() => calc(true), 300));
-      new ResizeObserver(debounce(desenhar, 100)).observe(cv);
       calc();
       return { recalcular: calc };
     },

@@ -509,7 +509,21 @@
   const sorteia = (a) => a[Math.floor(Math.random() * a.length)];
   const NOX_EX = [["KMnO4", "Mn"], ["K2Cr2O7", "Cr"], ["H2SO4", "S"], ["SO4^2-", "S"], ["NH4^+", "N"], ["HNO3", "N"], ["NO2", "N"], ["H3PO4", "P"], ["Na2S2O3", "S"], ["ClO3^-", "Cl"], ["HClO4", "Cl"], ["CO2", "C"], ["CH4", "C"], ["Fe2O3", "Fe"], ["H2O2", "O"], ["NaH", "H"], ["MnO2", "Mn"], ["CrO4^2-", "Cr"], ["NO3^-", "N"], ["PO4^3-", "P"]];
   const REDOX_EX = ["Zn + Cu^2+ -> Zn^2+ + Cu", "Fe + O2 -> Fe2O3", "Cu + Ag^+ -> Cu^2+ + Ag", "KMnO4 + HCl -> KCl + MnCl2 + Cl2 + H2O", "Al + H^+ -> Al^3+ + H2", "MnO4^- + Fe^2+ -> Mn^2+ + Fe^3+", "Cr2O7^2- + Fe^2+ -> Cr^3+ + Fe^3+", "H2S + O2 -> SO2 + H2O", "Mg + HCl -> MgCl2 + H2"];
+  // iônicas: escolher a equação iônica líquida certa
+  const PARES_IONICOS = ["AgNO3 + NaCl", "BaCl2 + Na2SO4", "Pb(NO3)2 + KI", "CaCl2 + Na2CO3", "HCl + NaOH", "H2SO4 + KOH", "CuSO4 + NaOH", "FeCl3 + KOH", "AgNO3 + KBr", "Na2CO3 + HCl", "NaCl + KNO3", "MgCl2 + NaOH", "BaCl2 + K2CO3", "HNO3 + Ca(OH)2", "Na2SO4 + KCl", "Pb(NO3)2 + Na2SO4", "AgNO3 + Na2CrO4", "NH4Cl + NaOH"];
+  function exIonica() {
+    const resultados = [];
+    for (const par of PARES_IONICOS) { const r = ionica({ reagentes: par }); if (r.ok) resultados.push({ par, r, txt: r.reacao ? r.liquida : "Não há reação: todos os íons ficam em solução" }); }
+    const alvo = sorteia(resultados);
+    const outros = [...new Set(resultados.filter((x) => x.txt !== alvo.txt).map((x) => x.txt))].sort(() => Math.random() - 0.5).slice(0, 3);
+    if (alvo.r.reacao && !outros.some((o) => o.startsWith("Não há")) ) outros[2] = "Não há reação: todos os íons ficam em solução";
+    const ops = [alvo.txt, ...outros].sort(() => Math.random() - 0.5);
+    const [a, b] = alvo.par.split(" + ");
+    return { tipo: "escolha", enunciado: `Misturam-se soluções aquosas de <b>${htmlEsp(lerEspecie(a))}</b> e <b>${htmlEsp(lerEspecie(b))}</b>. Qual é a <b>equação iônica líquida</b>?`, opcoes: ops, resposta: ops.indexOf(alvo.txt), passos: alvo.r.passos, texto: alvo.r.resposta };
+  }
+
   function gerarExercicio(tipo) {
+    if (tipo === "ionica") return exIonica();
     if (tipo === "nox") {
       const [f, s] = sorteia(NOX_EX);
       const r = nox(f);
@@ -532,7 +546,7 @@
     return { enunciado: `Uma solução de ${htmlEsp(termosTxt(s.ox)[0].e)} é eletrolisada com corrente de <b>${N(i)} A</b> durante <b>${t} min</b>. Que massa de <b>${s.metal}</b> se deposita no cátodo? (F = 96 485 C/mol)`, resposta: r.valor, rel: 0.02, unidade: "g", passos: r.passos, texto: r.resposta };
   }
 
-  const API = { lerEspecie, htmlEsp, nox, redox, balancearCarga, decompor, ionica, POT, semiHTML, termosTxt, pilha, faraday, gerarExercicio, TIPOS: ["nox", "redox-e", "pilha", "faraday"] };
+  const API = { lerEspecie, htmlEsp, nox, redox, balancearCarga, decompor, ionica, POT, semiHTML, termosTxt, pilha, faraday, gerarExercicio, TIPOS: ["nox", "redox-e", "pilha", "faraday", "ionica"] };
   if (node) module.exports = API;
   else raiz.QRedox = API;
 })(typeof window !== "undefined" ? window : globalThis);

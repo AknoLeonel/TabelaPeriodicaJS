@@ -111,7 +111,7 @@
 
   // 4. Estequiometria
   FERR.push({
-    id: "estequiometria", nome: "Estequiometria",
+    id: "estequiometria", nome: "Estequiometria", prat: "esteq",
     resumo: "Quanto se forma, quanto sobra e qual reagente limita a reação.",
     teoria: `<p><b>Estequiometria</b> é a “receita” da reação: os coeficientes da equação balanceada dão a proporção em <b>mol</b>.</p><div class="eq">N₂ + 3 H₂ → 2 NH₃ &nbsp; (1 : 3 : 2 em mol)</div><ul><li>Converta tudo para mol, use a proporção, volte para a unidade pedida.</li><li><b>Reagente limitante</b>: o que acaba primeiro e limita o produto; o outro fica em excesso.</li><li><b>Rendimento</b>: real = teórico × rendimento%.</li></ul>`,
     montar(raiz) {
@@ -268,7 +268,7 @@
 
   // 8. Distribuição eletrônica
   FERR.push({
-    id: "eletrons", nome: "Distribuição eletrônica",
+    id: "eletrons", nome: "Distribuição eletrônica", prat: "eletrons",
     resumo: "Diagrama de Pauling, camadas, orbitais (regra de Hund) e números quânticos.",
     teoria: `<p>Os elétrons ocupam <b>subníveis</b> em ordem crescente de energia, seguindo o <b>diagrama de Pauling</b> (as diagonais): 1s 2s 2p 3s 3p 4s 3d 4p 5s 4d 5p 6s 4f 5d 6p 7s 5f 6d 7p.</p><ul><li>Capacidade: s = 2, p = 6, d = 10, f = 14.</li><li><b>Regra de Hund</b>: num subnível, primeiro um elétron em cada orbital, depois os pares.</li><li>Íons: cátions perdem elétrons da camada mais externa (no Fe²⁺ saem os do 4s, não do 3d).</li><li>Exceções famosas: Cr e Cu (d semicheio/cheio é mais estável).</li></ul>`,
     montar(raiz) {

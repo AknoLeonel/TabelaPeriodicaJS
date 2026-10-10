@@ -157,40 +157,28 @@
       const th = campo({ rotulo: "Ângulo com a horizontal", ph: "Ex.: 45", sufixo: "°", valor: "45" });
       const h0 = campo({ rotulo: "Altura inicial", ph: "0", sufixo: "m", valor: "0" });
       const res = resultadoBox();
-      const cv = el("canvas", "lanc-cv");
-      cv.height = 200;
+      const gr = E.grafico({ modo: "dados", igual: true, rotX: "x (m)", rotY: "y (m)", altura: (w) => Math.round(Math.min(Math.max(w * 0.48, 220), 340)), aria: "Trajetória do lançamento" });
       const bt = ui.botao("▶ Animar o lançamento", () => animar(), "sec");
-      raiz.append(grade(v0, th, h0), el("small", "dica", `Sem resistência do ar. g = ${String(F.config.g).replace(".", ",")} m/s² (mude em “Opções”).`), cv, bt, res);
+      raiz.append(grade(v0, th, h0), el("small", "dica", `Sem resistência do ar. g = ${String(F.config.g).replace(".", ",")} m/s² (mude em “Ajustes”).`), gr.el, bt, res);
       let ult = null, raf = 0;
+      const fmt = (v) => E.fmtSig(v, 3);
       function desenhar(ate) {
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        const w = cv.clientWidth || 320, h = 200;
-        if (cv.width !== Math.round(w * dpr)) cv.width = Math.round(w * dpr);
-        cv.height = Math.round(h * dpr);
-        const g = cv.getContext("2d");
-        g.setTransform(dpr, 0, 0, dpr, 0, 0);
-        g.clearRect(0, 0, w, h);
-        if (!ult) return;
-        const m = 26, W = w - 2 * m, H = h - 2 * m - 6;
-        const xmax = Math.max(ult.A, 1), ymax = Math.max(ult.hmax, 1);
-        const esc = Math.min(W / xmax, H / ymax);
-        const X = (x) => m + x * esc, Y = (y) => h - m - y * esc;
-        g.strokeStyle = "rgba(255,255,255,.25)"; g.lineWidth = 1;
-        g.beginPath(); g.moveTo(m, Y(0)); g.lineTo(w - m + 10, Y(0)); g.moveTo(m, Y(0)); g.lineTo(m, 10); g.stroke();
-        g.fillStyle = "rgba(255,255,255,.55)"; g.font = "11px 'Space Grotesk', sans-serif";
-        g.fillText("0", m - 4, Y(0) + 14);
-        g.fillText(`${F.num(ult.A)} m`, Math.min(X(ult.A) - 18, w - 60), Y(0) + 14);
-        g.fillText(`${F.num(ult.hmax)} m`, m + 4, Y(ult.hmax) - 4);
-        g.setLineDash([4, 4]); g.strokeStyle = "rgba(255,255,255,.18)";
-        g.beginPath(); g.moveTo(m, Y(ult.hmax)); g.lineTo(X(ult.pts.find((p) => p[1] >= ult.hmax - 1e-9)?.[0] ?? 0), Y(ult.hmax)); g.stroke(); g.setLineDash([]);
-        g.strokeStyle = COR; g.lineWidth = 2.5; g.lineCap = "round";
-        g.beginPath();
-        const lim = ate == null ? ult.pts.length : ate + 1;
-        ult.pts.slice(0, lim).forEach((p, i) => (i ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1]))));
-        g.stroke();
-        const p = ult.pts[Math.min(lim - 1, ult.pts.length - 1)];
-        g.fillStyle = "#fff"; g.shadowColor = COR; g.shadowBlur = 12;
-        g.beginPath(); g.arc(X(p[0]), Y(p[1]), 5, 0, 7); g.fill(); g.shadowBlur = 0;
+        if (!ult) return gr.esconder();
+        const r = ult, pts = r.pts.map((p) => [p[0], p[1], p[2]]);
+        const lim = ate == null ? pts.length : ate + 1;
+        const atual = pts[Math.min(lim - 1, pts.length - 1)];
+        const topo = pts.reduce((m, p) => (p[1] > m[1] ? p : m), pts[0]);
+        const series = [
+          { tipo: "linha", pts, cor: "rgba(155,167,182,.45)", tracejado: true, largura: 1.5, legenda: false, leitura: false },
+          { tipo: "linha", pts: pts.slice(0, lim), rotulo: "trajetória", extraLeitura: (p) => (p[2] != null ? `em t = ${fmt(p[2])} s` : "") },
+          { tipo: "hline", v: r.hmax, cor: "#4aa3e0", tracejado: true, largura: 1, rotulo: `altura máx. ${fmt(r.hmax)} m`, legenda: false },
+          { tipo: "marca", x: topo[0], y: topo[1], vazia: true },
+          { tipo: "vline", v: r.A, cor: "#4aa3e0", tracejado: true, largura: 1, rotulo: `alcance ${fmt(r.A)} m`, legenda: false },
+          { tipo: "marca", x: r.A, y: 0, vazia: true },
+          { tipo: "marca", x: atual[0], y: atual[1], raio: 6 },
+        ];
+        if (r.h0 > 0) series.push({ tipo: "seg", de: [0, 0], para: [0, r.h0], cor: "#9ba7b6", largura: 3, rotulo: `h₀ = ${fmt(r.h0)} m` });
+        gr.definir({ x: [-Math.max(r.A, 1) * 0.04, Math.max(r.A, 1) * 1.12], y: [0, Math.max(r.hmax, 1) * 1.18], nomeX: "x (m)", nomeY: "y (m)", series }, { manterVista: ate != null });
       }
       function animar() {
         cancelAnimationFrame(raf);
@@ -215,7 +203,6 @@
       }
       [v0.input, th.input, h0.input].forEach((i) => i.addEventListener("input", debounce(calc, 220)));
       v0.sel.addEventListener("change", calc);
-      new ResizeObserver(() => desenhar()).observe(cv);
       calc();
       return { recalcular: calc };
     },

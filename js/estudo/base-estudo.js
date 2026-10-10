@@ -111,6 +111,7 @@
     const inp = el("input"); inp.type = "text"; inp.inputMode = tipo === "balancear" ? "text" : "decimal"; inp.placeholder = tipo === "balancear" ? "ex.: 2, 1, 2" : "sua resposta"; inp.autocomplete = "off";
     const unSpan = el("span", "ex-un");
     caixa.append(inp, unSpan);
+    const opcoes = el("div", "ex-opcoes"); opcoes.setAttribute("role", "group"); opcoes.setAttribute("aria-label", "Alternativas");
     const fb = el("div", "ex-fb");
     const passosBox = el("div", "ex-passos"); passosBox.hidden = true;
     const bts = el("div", "linha-bt");
@@ -119,19 +120,39 @@
     const btVer = ui.botao("Ver resolução", () => { passosBox.hidden = !passosBox.hidden; if (!passosBox.hidden) renderPassos(passosBox, ex.passos); }, "sec");
     const btOutro = ui.botao("Outro exercício →", () => novo(), "sec");
     bts.append(btConf, btVer);
+    const escolha = () => ex && ex.tipo === "escolha";
     function novo() {
       ex = motor.gerarExercicio(tipo);
       respondido = false;
       card.innerHTML = `<small>Exercício</small><div class="ex-en">${ex.enunciado}</div>`;
+      if (ex.grafico && LAB.estudo.grafico) {
+        const gr = LAB.estudo.grafico({ interativo: false, leitura: false, ...(ex.graficoOp || {}) }); // sem leitura: não entrega a resposta
+        card.querySelector(".ex-en").appendChild(gr.el);
+        gr.definir(ex.grafico);
+      }
       inp.value = ""; fb.innerHTML = ""; fb.className = "ex-fb"; passosBox.hidden = true; passosBox.innerHTML = "";
       unSpan.textContent = ex.unidade || "";
-      bts.innerHTML = ""; bts.append(btConf, btVer);
-      inp.focus({ preventScroll: true });
+      caixa.hidden = escolha();
+      opcoes.hidden = !escolha();
+      opcoes.innerHTML = "";
+      if (escolha()) {
+        ex.opcoes.forEach((html, i) => {
+          const b = el("button", "ex-op", `<i>${"ABCDE"[i]}</i><span>${html}</span>`);
+          b.type = "button";
+          b.addEventListener("click", () => conferir(i));
+          opcoes.appendChild(b);
+        });
+      }
+      bts.innerHTML = ""; bts.append(...(escolha() ? [btVer] : [btConf, btVer]));
+      if (!escolha()) inp.focus({ preventScroll: true });
     }
-    function conferir() {
-      const t = inp.value.trim();
+    function conferir(indice) {
+      const t = escolha() ? String(indice) : inp.value.trim();
+      if (escolha() && indice == null) return;
       if (!t) { fb.className = "ex-fb aviso"; fb.textContent = "Digite uma resposta primeiro."; return; }
-      const c = motor.conferir(ex, t);
+      if (escolha() && respondido) return;
+      const c = escolha() ? indice === ex.resposta : motor.conferir(ex, t);
+      if (escolha()) opcoes.querySelectorAll(".ex-op").forEach((b, i) => { b.disabled = true; b.classList.toggle("certa", i === ex.resposta); b.classList.toggle("errada", i === indice && !c); });
       if (c === null) { fb.className = "ex-fb aviso"; fb.textContent = "Não entendi esse número. Use vírgula ou ponto (ex.: 18,02)."; return; }
       if (!respondido) {
         pts.total++;
@@ -139,18 +160,19 @@
         guardar(chave, pts); att();
         respondido = true;
       }
-      if (c) { fb.className = "ex-fb certo"; fb.innerHTML = `<b>Certo!</b> ${ex.tipo === "lista" ? "" : "Resposta: " + ex.texto}`; }
+      if (c) { fb.className = "ex-fb certo"; fb.innerHTML = `<b>Certo!</b> ${ex.tipo === "lista" || escolha() ? "" : "Resposta: " + ex.texto}`; }
       else {
         fb.className = "ex-fb errado";
         let dica = "";
-        if (ex.tipo !== "lista") { const v = motor.lerNumero(t); if (Math.abs(v - ex.resposta) / Math.abs(ex.resposta) < 0.15) dica = " Está perto: confira os arredondamentos e as unidades."; }
+        if (escolha()) dica = ` A alternativa certa está marcada.`;
+        else if (ex.tipo !== "lista") { const v = motor.lerNumero(t); if (Math.abs(v - ex.resposta) / Math.abs(ex.resposta) < 0.15) dica = " Está perto: confira os arredondamentos e as unidades."; }
         fb.innerHTML = `<b>Ainda não.</b>${dica} Abra a resolução para ver onde pode ter errado.`;
       }
       bts.innerHTML = ""; bts.append(btVer, btOutro);
       if (c) btOutro.classList.remove("sec");
     }
     inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { if (respondido) novo(); else conferir(); } });
-    raiz.append(placar, card, caixa, fb, bts, passosBox);
+    raiz.append(placar, card, caixa, opcoes, fb, bts, passosBox);
     novo();
   }
 

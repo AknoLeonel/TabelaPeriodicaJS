@@ -44,6 +44,10 @@ Botão **Estudo** (tecla `E`). Cada matéria tem a lista de ferramentas ao lado 
 2. **Resolva**: você digita o que o problema dá e recebe a resposta e o **passo a passo** (com botão Copiar). Em **Ajustes** dá para ver os passos um de cada vez, para tentar antes de ver.
 3. **Pratique**: exercícios novos a cada clique, corrigidos pelo mesmo motor que resolve, com placar.
 
+Os exercícios de prática existem em todas as ferramentas de cálculo (as de consulta, como Formulário, Constantes e Tabelas, não têm). Alguns são de múltipla escolha, como reconhecer uma função pelo gráfico ou escolher a equação iônica líquida certa.
+
+**Gráficos.** Todas as matérias usam o mesmo componente (`js/estudo/grafico.js`): escalas com passos 1-2-5 e números com vírgula, leitura do valor sob o dedo ou o mouse, zoom (botões, pinça ou Ctrl + roda) e arraste, legenda, etiquetas que não se sobrepõem e escala 1:1 quando a forma importa (círculo trigonométrico, vetores, trajetória). Nos exercícios a leitura fica desligada, para não entregar a resposta.
+
 O app lembra a última matéria e ferramenta usadas, e cada ferramenta tem endereço próprio (por exemplo `#estudo/quimica/estequiometria`).
 
 Aceita `1,5`, `1e-3`, `1,5x10^-3` e `1/3`.
@@ -84,6 +88,7 @@ Botão **Laboratório** (tecla `L`). Cada módulo tem um selo dizendo o que é f
 | `css/lab.css` | Componentes do laboratório e do estudo |
 | `js/estudo/base-estudo.js` | Componentes comuns do estudo: campos, passo a passo, prática e a casca de cada matéria |
 | `js/estudo/expressao.js` | Leitor e avaliador de expressões matemáticas (sem `eval`) |
+| `js/estudo/grafico.js` | Gráfico comum do estudo (funções, dados, histogramas, vetores, trajetórias) |
 | `js/estudo/quimica-calc.js`, `quimica-redox-calc.js`, `quimica-termo-calc.js` | Motores de química |
 | `js/estudo/fisica-calc.js`, `matematica-calc.js`, `pesquisa-calc.js` | Motores de física, matemática e pesquisa |
 | `js/estudo/quimica*.js`, `fisica-estudo.js`, `matematica.js`, `pesquisa.js` | Interfaces de cada matéria |

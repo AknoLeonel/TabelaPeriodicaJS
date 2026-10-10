@@ -894,8 +894,61 @@
   const inteiro = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   const naoZero = (a, b) => { let v = 0; while (v === 0) v = inteiro(a, b); return v; };
   const ex = (enunciado, r, extra) => ({ enunciado, resposta: r.valor, passos: r.passos, texto: r.resposta, unidade: "", rel: 0.005, tol: 0.01, ...extra });
-  const TIPOS = ["eq2", "sist2", "regra3", "perc", "log", "trig", "deriv", "integral"];
+  const TIPOS = ["eq2", "sist2", "regra3", "perc", "log", "trig", "deriv", "integral", "vetor", "grafico"];
+  // vetores: módulo, soma, produto escalar e ângulo
+  function exVetor() {
+    const v2 = () => [inteiro(-6, 6) || 1, inteiro(-6, 6) || 2];
+    const modo = sorteia(["modulo", "soma", "escalar", "angulo"]);
+    const u = modo === "modulo" ? sorteia([[3, 4], [6, 8], [5, 12], [8, 6], [-9, 12], [1, 1], [2, -3]]) : v2(), w = v2();
+    const T = (a) => `(${a.map((x) => String(x).replace("-", "−")).join("; ")})`;
+    const desenho = (series) => ({ series });
+    if (modo === "modulo") { const r = vetores({ op: "modulo", u: T(u) }); return { ...ex(`Qual o <b>módulo</b> do vetor <b>u = ${T(u)}</b>?`, r, { resposta: Math.hypot(...u), texto: N(Math.hypot(...u), 5) }), grafico: desenho([{ tipo: "vetor", para: u, rotulo: "u" }]), graficoOp: { igual: true, altura: 200 } }; }
+    if (modo === "soma") {
+      const r = vetores({ op: "soma", u: T(u), v: T(w) }), sm = [u[0] + w[0], u[1] + w[1]];
+      return { ...ex(`Sendo <b>u = ${T(u)}</b> e <b>v = ${T(w)}</b>, qual o <b>módulo de u + v</b>?`, r, { resposta: Math.hypot(...sm), texto: `u + v = ${T(sm)}, |u + v| = ${N(Math.hypot(...sm), 5)}` }) };
+    }
+    const r = vetores({ op: "escalar", u: T(u), v: T(w) });
+    const dot = u[0] * w[0] + u[1] * w[1];
+    if (modo === "escalar") return ex(`Calcule o <b>produto escalar</b> u·v para <b>u = ${T(u)}</b> e <b>v = ${T(w)}</b>.`, r, { resposta: dot, tol: 0, rel: 0, texto: N(dot) });
+    const ang = (Math.acos(Math.max(-1, Math.min(1, dot / (Math.hypot(...u) * Math.hypot(...w))))) * 180) / Math.PI;
+    return ex(`Qual o <b>ângulo entre u = ${T(u)} e v = ${T(w)}</b>, em graus?`, r, { resposta: ang, tol: 0.2, rel: 0, unidade: "°", texto: `${N(ang, 4)}°` });
+  }
+
+  // gráficos: reconhecer a função pelo desenho, ou ler raiz e vértice
+  function exGrafico() {
+    const modo = sorteia(["qual", "qual", "raiz", "vertice"]);
+    const sinal = (k) => (k < 0 ? " − " : " + ");
+    if (modo === "qual") {
+      const FAM = [
+        () => { const a = sorteia([-3, -2, -1, 1, 2, 3]), b = inteiro(-4, 4); return { f: (x) => a * x + b, t: `f(x) = ${a === 1 ? "" : a === -1 ? "−" : a}x${b ? sinal(b) + Math.abs(b) : ""}`, fam: "reta" }; },
+        () => { const r1 = inteiro(-4, 3), r2 = r1 + inteiro(1, 4), a = sorteia([1, -1]); return { f: (x) => a * (x - r1) * (x - r2), t: `f(x) = ${a < 0 ? "−" : ""}(x${sinal(-r1)}${Math.abs(r1)})(x${sinal(-r2)}${Math.abs(r2)})`.replace(/x \+ 0|x − 0/g, "x"), fam: "parábola" }; },
+        () => { const b = sorteia([2, 3, 0.5]); return { f: (x) => Math.pow(b, x), t: `f(x) = ${String(b).replace(".", ",")}<sup>x</sup>`, fam: "exponencial" }; },
+        () => { const k = sorteia([1, 2]), A = sorteia([1, 2, 3]); return { f: (x) => A * Math.sin(k * x), t: `f(x) = ${A === 1 ? "" : A}sen(${k === 1 ? "" : k}x)`, fam: "seno" }; },
+        () => ({ f: (x) => Math.log(x), t: "f(x) = ln x", fam: "log" }),
+        () => { const k = sorteia([1, 2, 4]); return { f: (x) => k / x, t: `f(x) = ${k}/x`, fam: "hipérbole" }; },
+        () => ({ f: (x) => Math.sqrt(x), t: "f(x) = √x", fam: "raiz" }),
+        () => { const c = inteiro(-2, 2); return { f: (x) => x * x * x - 3 * x + c, t: `f(x) = x³ − 3x${c ? sinal(c) + Math.abs(c) : ""}`, fam: "cúbica" }; },
+      ];
+      const idx = [...FAM.keys()].sort(() => Math.random() - 0.5).slice(0, 4);
+      const ops = idx.map((i) => FAM[i]());
+      const certo = inteiro(0, 3), alvo = ops[certo];
+      const dica = { reta: "Uma reta tem inclinação constante: o 1º grau.", parábola: "Uma parábola (2º grau) tem um vértice e é simétrica; se as raízes aparecem no eixo x, compare com os fatores (x − r).", exponencial: "A exponencial cresce cada vez mais rápido e nunca toca o eixo x (f(0) = 1).", seno: "Uma onda que se repete é seno ou cosseno; a altura máxima é a amplitude.", log: "ln x só existe para x > 0, passa por (1; 0) e cresce cada vez mais devagar.", hipérbole: "k/x não existe em x = 0 e tem dois ramos, um de cada lado.", raiz: "√x começa em (0; 0), só existe para x ≥ 0 e cresce cada vez mais devagar.", cúbica: "x³ − 3x tem um máximo em x = −1 e um mínimo em x = 1." }[alvo.fam];
+      return { tipo: "escolha", enunciado: "Qual destas funções tem o gráfico abaixo?", grafico: { x: [-5, 5], series: [{ tipo: "funcao", f: alvo.f }] }, graficoOp: { altura: 220 }, opcoes: ops.map((o) => o.t), resposta: certo, passos: [R("Como reconhecer", `<p>${dica}</p><p>Resposta: <b>${alvo.t}</b>. Teste um ponto: em x = 1 ela vale ${N(alvo.f(1), 4)}.</p>`)], texto: alvo.t.replace(/<[^>]+>/g, "") };
+    }
+    const r1 = inteiro(-4, 2), r2 = r1 + inteiro(2, 6), a = sorteia([1, -1, 1]);
+    const f = (x) => a * (x - r1) * (x - r2);
+    const xv = (r1 + r2) / 2, yv = f(xv);
+    const b = -a * (r1 + r2), c = a * r1 * r2;
+    const ftxt = `f(x) = ${a < 0 ? "−" : ""}x²${b ? sinal(b) + (Math.abs(b) === 1 ? "" : Math.abs(b)) + "x" : ""}${c ? sinal(c) + Math.abs(c) : ""}`;
+    const grafico = { x: [r1 - 2, r2 + 2], series: [{ tipo: "funcao", f, rotulo: ftxt }] };
+    const r = eq2({ a, b, c });
+    if (modo === "raiz") return ex(`O gráfico mostra ${ftxt}. Qual é a <b>maior raiz</b> (onde o gráfico corta o eixo x mais à direita)? Confira com Bhaskara.`, r, { grafico, graficoOp: { altura: 220 }, resposta: r2, tol: 0, rel: 0, texto: `x = ${r2}` });
+    return ex(`O gráfico mostra ${ftxt}. Qual é o valor de y no <b>vértice</b> (${a > 0 ? "ponto mais baixo" : "ponto mais alto"})?`, r, { grafico, graficoOp: { altura: 220 }, resposta: yv, tol: 0.01, rel: 0, texto: `y<sub>v</sub> = ${N(yv)} (em x = ${N(xv)})` });
+  }
+
   function gerarExercicio(tipo) {
+    if (tipo === "vetor") return exVetor();
+    if (tipo === "grafico") return exGrafico();
     if (tipo === "eq2") {
       const r1 = inteiro(-6, 6), r2 = inteiro(-6, 6), a = sorteia([1, 1, 2, -1]);
       const b = -a * (r1 + r2), c = a * r1 * r2;
