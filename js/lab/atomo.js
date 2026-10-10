@@ -674,16 +674,21 @@
       g.globalCompositeOperation = "lighter";
 
       // halo do núcleo conforme a estabilidade
-      let corHalo = "#5df0b0", forca = 0.22;
-      if (i.estado === "instavel") { corHalo = "#ffd23f"; forca = 0.28 + Math.sin(t * 5) * 0.12; }
-      else if (i.estado === "naoligado") { corHalo = "#ff5a7a"; forca = 0.4 + Math.sin(t * 17) * 0.2; }
+      // anel fino em volta do núcleo indica o estado (verde estável, amarelo instável, vermelho não ligado)
+      let corHalo = "#6fd6a2", forca = 0.55;
+      if (i.estado === "instavel") { corHalo = "#e6c04a"; forca = 0.6 + Math.sin(t * 5) * 0.25; }
+      else if (i.estado === "naoligado") { corHalo = "#f0707f"; forca = 0.7 + Math.sin(t * 17) * 0.25; }
       else if (i.estado === "vazio") forca = 0;
       if (forca > 0) {
-        const hr = Math.max(layout.Rnuc * 2.6, 40);
+        const hr = Math.max(layout.Rnuc * 1.35, 22);
+        g.globalCompositeOperation = "source-over";
         g.globalAlpha = clamp(forca + flash * 0.5, 0, 1);
-        const spr = LAB.brilho(64, corHalo, 0.2);
-        g.drawImage(spr, cx - hr, cy - hr, hr * 2, hr * 2);
+        g.strokeStyle = corHalo; g.lineWidth = 1.5;
+        if (i.estado !== "estavel") g.setLineDash([5, 4]);
+        g.beginPath(); g.arc(cx, cy, hr, 0, 6.2832); g.stroke();
+        g.setLineDash([]);
         g.globalAlpha = 1;
+        g.globalCompositeOperation = "lighter";
       }
 
       // elétrons: órbitas e partículas

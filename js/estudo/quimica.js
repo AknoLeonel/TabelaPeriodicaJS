@@ -19,6 +19,7 @@
   FERR.push({
     id: "massa", nome: "Massa molar", prat: "massa",
     resumo: "Some as massas atômicas de qualquer fórmula, até com parênteses e água de cristalização.",
+    teoria: `<p><b>Massa molar</b> (M) é a massa de 1 mol de uma substância, em g/mol. Ela é a soma das massas atômicas de todos os átomos da fórmula.</p><div class="eq">M(H₂O) = 2·1,008 + 16,00 = 18,02 g/mol</div><ul><li>O índice vale só para o elemento (ou parêntese) logo antes dele: em Ca(OH)₂ há 2 O e 2 H.</li><li>Na água de cristalização (CuSO₄·5H₂O), some 5 vezes a massa da água.</li></ul>`,
     montar(raiz) {
       const f = campo({ rotulo: "Fórmula química", ph: "Ex.: Ca(OH)2", tipo: "texto" });
       f.input.style.fontFamily = '"Space Grotesk", sans-serif';
@@ -54,6 +55,7 @@
   FERR.push({
     id: "mol", nome: "Mol e conversões", prat: "mol",
     resumo: "Passe entre massa, mol, número de partículas e volume de gás.",
+    teoria: `<p>O <b>mol</b> é um “pacote” de 6,022×10²³ partículas (número de Avogadro). Ele liga o mundo dos átomos ao da balança:</p><div class="eq">n = <span class="frac"><span>m</span><span>M</span></span> &nbsp; N = n·6,022×10²³ &nbsp; V = n·22,4 L (gás nas CNTP)</div><p>Dica: passe sempre por mol. Massa → mol → partículas (ou volume).</p>`,
     montar(raiz) {
       const f = campo({ rotulo: "Substância", ph: "Ex.: H2O", tipo: "texto" });
       const tipo = ui.segmentado({ itens: [{ id: "massa", rotulo: "Massa (g)" }, { id: "mol", rotulo: "Mol" }, { id: "particulas", rotulo: "Partículas" }, { id: "volume", rotulo: "Volume (L)" }], valor: "massa", onChange: () => calc() });
@@ -79,6 +81,7 @@
   FERR.push({
     id: "balancear", nome: "Balancear equações", prat: "balancear",
     resumo: "Acerte os coeficientes de qualquer equação química, com a conta algébrica.",
+    teoria: `<p>Numa reação os átomos não somem nem aparecem (<b>Lavoisier</b>): cada elemento precisa ter a mesma quantidade dos dois lados.</p><ul><li>Só mude os <b>coeficientes</b> (números na frente), nunca os índices das fórmulas.</li><li>Método das tentativas: comece pelo elemento que aparece em menos substâncias, deixe H e O para o fim.</li><li>O app usa o método algébrico: uma incógnita por coeficiente e uma equação por elemento.</li></ul>`,
     montar(raiz, ctx) {
       const f = campo({ rotulo: "Equação (use -> ou = como seta)", ph: "Ex.: C3H8 + O2 -> CO2 + H2O", tipo: "texto" });
       const tec = el("div", "teclado");
@@ -110,6 +113,7 @@
   FERR.push({
     id: "estequiometria", nome: "Estequiometria",
     resumo: "Quanto se forma, quanto sobra e qual reagente limita a reação.",
+    teoria: `<p><b>Estequiometria</b> é a “receita” da reação: os coeficientes da equação balanceada dão a proporção em <b>mol</b>.</p><div class="eq">N₂ + 3 H₂ → 2 NH₃ &nbsp; (1 : 3 : 2 em mol)</div><ul><li>Converta tudo para mol, use a proporção, volte para a unidade pedida.</li><li><b>Reagente limitante</b>: o que acaba primeiro e limita o produto; o outro fica em excesso.</li><li><b>Rendimento</b>: real = teórico × rendimento%.</li></ul>`,
     montar(raiz) {
       const f = campo({ rotulo: "Equação química", ph: "Ex.: H2 + O2 -> H2O", tipo: "texto" });
       const ex = ui.chips({ itens: ["H2 + O2 -> H2O", "N2 + H2 -> NH3", "CaCO3 + HCl -> CaCl2 + CO2 + H2O", "Fe2O3 + CO -> Fe + CO2"].map((x) => ({ id: x, rotulo: x.replace("->", "→") })), onClick: (id) => { f.set(id); montarTabela(); } });
@@ -168,6 +172,7 @@
   FERR.push({
     id: "solucoes", nome: "Soluções", prat: "diluicao",
     resumo: "Molaridade e diluição: deixe em branco o que você quer descobrir.",
+    teoria: `<p><b>Concentração molar</b> (molaridade) é quantos mols de soluto há em cada litro de solução:</p><div class="eq">C = <span class="frac"><span>n</span><span>V</span></span> = <span class="frac"><span>m</span><span>M·V</span></span> &nbsp; (mol/L)</div><p><b>Diluição</b>: ao acrescentar água a quantidade de soluto não muda, então C₁·V₁ = C₂·V₂.</p><p>Atenção: V da solução em <b>litros</b> (500 mL = 0,5 L).</p>`,
     montar(raiz) {
       const sub = ui.segmentado({ itens: [{ id: "mol", rotulo: "Molaridade" }, { id: "dil", rotulo: "Diluição" }], valor: "mol", onChange: (id) => { painelM.hidden = id !== "mol"; painelD.hidden = id !== "dil"; } });
       // molaridade
@@ -206,6 +211,7 @@
   FERR.push({
     id: "ph", nome: "pH", prat: "ph",
     resumo: "pH de ácidos e bases fortes e fracos, e conversões entre pH, pOH, [H⁺] e [OH⁻].",
+    teoria: `<p>O <b>pH</b> mede a acidez: pH = −log[H⁺]. A 25 °C, pH + pOH = 14 (Kw = 10⁻¹⁴).</p><ul><li>pH &lt; 7 ácido, = 7 neutro, &gt; 7 básico. Cada unidade de pH é um fator 10 em [H⁺].</li><li><b>Ácido/base forte</b>: ioniza tudo, [H⁺] = concentração (× número de H⁺ liberados).</li><li><b>Fraco</b>: só uma parte ioniza; usa-se K<sub>a</sub> (ou K<sub>b</sub>): K<sub>a</sub> = x²/(C − x).</li></ul>`,
     montar(raiz) {
       const tipos = [["acido-forte", "Ácido forte"], ["base-forte", "Base forte"], ["acido-fraco", "Ácido fraco"], ["base-fraca", "Base fraca"], ["conv", "Converter"]];
       let tipo = "acido-forte";
@@ -242,6 +248,7 @@
   FERR.push({
     id: "gases", nome: "Gases ideais", prat: "gas",
     resumo: "PV = nRT: preencha três valores e deixe em branco o que quer descobrir.",
+    teoria: `<p>Os <b>gases ideais</b> obedecem a P·V = n·R·T.</p><ul><li>T sempre em <b>kelvin</b> (K = °C + 273,15).</li><li>R = 0,082 atm·L/(mol·K) = 8,314 J/(mol·K): escolha o R de acordo com as unidades de P e V.</li><li>Com n constante: P₁V₁/T₁ = P₂V₂/T₂ (Boyle, Charles e Gay-Lussac).</li><li>CNTP: 0 °C e 1 atm → 1 mol ocupa 22,4 L.</li></ul>`,
     montar(raiz) {
       const P = campo({ rotulo: "Pressão P", ph: "valor", unidades: ["atm", "kPa", "Pa", "mmHg", "bar"], unidadePadrao: "atm" });
       const V = campo({ rotulo: "Volume V", ph: "valor", unidades: ["L", "mL", "m³", "cm³"], unidadePadrao: "L" });
@@ -263,6 +270,7 @@
   FERR.push({
     id: "eletrons", nome: "Distribuição eletrônica",
     resumo: "Diagrama de Pauling, camadas, orbitais (regra de Hund) e números quânticos.",
+    teoria: `<p>Os elétrons ocupam <b>subníveis</b> em ordem crescente de energia, seguindo o <b>diagrama de Pauling</b> (as diagonais): 1s 2s 2p 3s 3p 4s 3d 4p 5s 4d 5p 6s 4f 5d 6p 7s 5f 6d 7p.</p><ul><li>Capacidade: s = 2, p = 6, d = 10, f = 14.</li><li><b>Regra de Hund</b>: num subnível, primeiro um elétron em cada orbital, depois os pares.</li><li>Íons: cátions perdem elétrons da camada mais externa (no Fe²⁺ saem os do 4s, não do 3d).</li><li>Exceções famosas: Cr e Cu (d semicheio/cheio é mais estável).</li></ul>`,
     montar(raiz) {
       const f = campo({ rotulo: "Elemento (símbolo ou número atômico)", ph: "Ex.: Fe ou 26", tipo: "texto" });
       const carga = campo({ rotulo: "Carga do íon (opcional)", ph: "0", valor: "0", ajuda: "Ex.: 3 para Fe³⁺, −1 para Cl⁻" });

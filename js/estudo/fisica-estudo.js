@@ -36,6 +36,7 @@
   FERR.push({
     id: "formulas", nome: "Fórmulas", prat: "formulas",
     resumo: "Diga o que o problema pede e o que ele dá: a ferramenta escolhe a fórmula, isola, converte as unidades e resolve.",
+    teoria: `<p>Para resolver um problema de física, siga sempre o mesmo roteiro:</p><ol><li><b>Leia e liste</b> os dados com unidades e a grandeza pedida.</li><li><b>Converta</b> tudo para o SI (m, kg, s, N, J, W...).</li><li><b>Escolha a fórmula</b> que liga os dados à incógnita (às vezes são duas em sequência).</li><li><b>Isole</b> a incógnita antes de pôr números.</li><li><b>Substitua, calcule e confira</b> a unidade e se o resultado faz sentido.</li></ol><p>Na <b>análise dimensional</b>, as unidades dos dois lados da fórmula têm de ser iguais: é um teste rápido contra erros.</p>`,
     montar(raiz, ctx) {
       const topo = el("div", "chips");
       const dica = el("small", "dica");
@@ -122,6 +123,7 @@
   FERR.push({
     id: "circuitos", nome: "Circuitos", prat: "circ",
     resumo: "Resistência equivalente de associações em série e paralelo, com corrente e tensão em cada resistor.",
+    teoria: `<p>Num circuito, a <b>lei de Ohm</b> liga tensão, corrente e resistência: V = R·i.</p><ul><li><b>Série</b>: mesma corrente em todos; as resistências somam: R<sub>eq</sub> = R₁ + R₂ + …</li><li><b>Paralelo</b>: mesma tensão em todos; somam-se os inversos: 1/R<sub>eq</sub> = 1/R₁ + 1/R₂ + … (para dois: produto ÷ soma).</li><li>R<sub>eq</sub> em paralelo é sempre menor que o menor resistor.</li><li>Potência dissipada: P = V·i = R·i² = V²/R.</li></ul>`,
     montar(raiz) {
       const f = campo({ rotulo: "Associação de resistores (Ω)", ph: "Ex.: 6 + (12 | 4)", tipo: "texto" });
       const tec = el("div", "teclado");
@@ -149,6 +151,7 @@
   FERR.push({
     id: "lancamento", nome: "Lançamento", prat: "lanc",
     resumo: "Lançamento oblíquo (ou horizontal): componentes, altura máxima, tempo no ar e alcance, com a trajetória desenhada.",
+    teoria: `<p>No <b>lançamento oblíquo</b> (sem ar) o movimento se separa em dois independentes:</p><ul><li><b>Horizontal</b>: velocidade constante v<sub>x</sub> = v₀·cos θ (MRU).</li><li><b>Vertical</b>: aceleração −g, v<sub>y</sub> = v₀·sen θ − g·t (MRUV), como um lançamento vertical.</li></ul><div class="eq">h<sub>máx</sub> = <span class="frac"><span>v<sub>0y</sub>²</span><span>2g</span></span> &nbsp; A = <span class="frac"><span>v₀²·sen 2θ</span><span>g</span></span> (do chão ao chão)</div><p>O alcance máximo acontece a 45°; ângulos complementares (30° e 60°) dão o mesmo alcance.</p>`,
     montar(raiz) {
       const v0 = campo({ rotulo: "Velocidade inicial", ph: "Ex.: 20", unidades: ["m/s", "km/h"], unidadePadrao: "m/s", valor: "20" });
       const th = campo({ rotulo: "Ângulo com a horizontal", ph: "Ex.: 45", sufixo: "°", valor: "45" });
@@ -222,6 +225,7 @@
   FERR.push({
     id: "conversor", nome: "Unidades", prat: "conv",
     resumo: "Converta entre unidades mostrando o fator de conversão (km/h ↔ m/s, kWh ↔ J, atm ↔ Pa, °C ↔ K...).",
+    teoria: `<p>Para converter, multiplique por um <b>fator igual a 1</b> escrito como fração de unidades equivalentes, de modo que a unidade antiga “corte”:</p><div class="eq">72 km/h × <span class="frac"><span>1000 m</span><span>1 km</span></span> × <span class="frac"><span>1 h</span><span>3600 s</span></span> = 20 m/s</div><ul><li>km/h → m/s: divida por 3,6.</li><li>Áreas e volumes: o fator vai ao quadrado ou ao cubo (1 m² = 10⁴ cm²; 1 m³ = 1000 L).</li><li>Temperatura não é só multiplicar: °C → K soma 273,15.</li></ul>`,
     montar(raiz) {
       const dims = [...F.CONV_DIMS, "temp"];
       const nomeDim = (d) => (d === "temp" ? "Temperatura" : F.NOME_DIM[d] || d);
@@ -259,6 +263,7 @@
   FERR.push({
     id: "formulario", nome: "Formulário",
     resumo: "Todas as fórmulas do app, com o significado de cada letra e a unidade no SI. Toque em “Resolver” para usar uma delas.",
+    teoria: `<p>Cada fórmula vale em certas condições (velocidade constante, aceleração constante, campo uniforme...). Antes de usar, pergunte: a situação do problema é essa?</p><p>Toque em “Resolver para” numa fórmula para abrir o resolvedor já com os campos certos.</p>`,
     montar(raiz, ctx) {
       const busca = campo({ rotulo: "Procurar", ph: "Ex.: energia, Ohm, pêndulo...", tipo: "texto" });
       const lista = el("div", "form-lista");
