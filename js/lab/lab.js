@@ -155,8 +155,8 @@
   }
 
   // "estudo" e "lab" abrem o último módulo usado daquele grupo
-  const ultimo = (g) => { try { return localStorage.getItem("elementar.ultimo." + g); } catch (e) { return null; } };
-  const lembrar = (c) => { try { localStorage.setItem("elementar.ultimo." + c.grupo, c.id); } catch (e) { /* sem armazenamento */ } };
+  const ultimo = (g) => { try { return localStorage.getItem("elementar.ultimo." + g); } catch (_e) { return null; } };
+  const lembrar = (c) => { try { localStorage.setItem("elementar.ultimo." + c.grupo, c.id); } catch (_e) { /* sem armazenamento */ } };
 
   async function ativar(id) {
     if (id === "estudo" || id === "lab") id = ultimo(id) || doGrupo(id)[0].id;
@@ -174,7 +174,7 @@
     if (!m) {
       raiz.classList.add("carregando");
       try { m = await garantir(c); }
-      catch (e) { if (meu === pedido) { raiz.classList.remove("carregando"); LAB.avisar("Não consegui carregar este módulo. Verifique a conexão."); } return; }
+      catch (_e) { if (meu === pedido) { raiz.classList.remove("carregando"); LAB.avisar("Não consegui carregar este módulo. Verifique a conexão."); } return; }
       if (meu !== pedido) return; // o usuário já foi para outro módulo
       raiz.classList.remove("carregando");
     }

@@ -6,7 +6,7 @@
   "use strict";
   const LAB = window.LAB;
   const F = window.LabFisica;
-  const { el, ui, clamp, rnd } = LAB;
+  const { el, ui } = LAB;
 
   const COR_VIVO = "#2ee6b6";
   const COR_FILHO = "#6a5fd0";
@@ -55,7 +55,7 @@
     let hist = [], proxAmostra = 0;
     let flashes = [];
     let tHud = 0;
-    let decaidos = 0;
+    let _decaidos = 0;
 
     const cena = new LAB.Cena(canvas, { dprMax: 2 });
     const inf = () => F.info(S.iso.Z, S.iso.A - S.iso.Z);
@@ -109,7 +109,7 @@
       for (let i = 0; i < S.N; i++) alive[i] = i;
       n = S.N;
       vivoMapa.s = new Uint8Array(S.N);
-      S.tau = 0; S.fim = false; decaidos = 0;
+      S.tau = 0; S.fim = false; _decaidos = 0;
       hist = [{ t: 0, f: 1 }]; proxAmostra = 0.02;
       flashes = [];
       montarGrade();
@@ -143,7 +143,7 @@
         const idx = alive[j];
         alive[j] = alive[--n];
         vivoMapa.s[idx] = 1;
-        decaidos++;
+        _decaidos++;
         pintar(idx, false);
         if (flashes.length < 90) { const [x, y] = posicao(idx); flashes.push({ x, y, v: 0.5, max: 0.5, modo }); }
         if (sons++ < 5) LAB.som.clique(0.2 + Math.random() * 0.15);

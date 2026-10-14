@@ -233,7 +233,7 @@
       const a = c.p1[i].par, b = c.p2[i].par;
       const m = new Map();
       for (const x of homo(a) ? [a[0]] : a) for (const y of homo(b) ? [b[0]] : b) { const k = ordenaPar(x, y); m.set(k, (m.get(k) || 0) + 1); }
-      let lista = [...m.entries()].map(([g, n]) => ({ g, n, letal: i === 0 && letal ? (letal === "dom" ? g === L + L : g === L.toLowerCase() + L.toLowerCase()) : false })).sort((p, q) => rankLocus(p.g) - rankLocus(q.g));
+      const lista = [...m.entries()].map(([g, n]) => ({ g, n, letal: i === 0 && letal ? (letal === "dom" ? g === L + L : g === L.toLowerCase() + L.toLowerCase()) : false })).sort((p, q) => rankLocus(p.g) - rankLocus(q.g));
       const tot = lista.filter((x) => !x.letal).reduce((s, x) => s + x.n, 0);
       return { L, lista, tot };
     });
@@ -503,7 +503,7 @@
   };
   const CODIGO = {};
   for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) for (let k = 0; k < 4; k++) CODIGO[BASES[i] + BASES[j] + BASES[k]] = AA_DO_CODON[16 * i + 4 * j + k];
-  const traduzirCodon = (c) => CODIGO[c] || null;
+  const _traduzirCodon = (c) => CODIGO[c] || null;
   const COMP_DNA = { A: "T", T: "A", C: "G", G: "C" };
   const COMP_RNA_DE_DNA = { A: "U", T: "A", C: "G", G: "C" };
   const complementar = (s) => s.split("").map((b) => COMP_DNA[b]).join("");
@@ -589,7 +589,7 @@
         : `<p>A sequência já é o RNAm (5'→3'). O DNA molde que o originou é complementar a ele (com T no lugar de U):</p>${eqH(`molde 3'→5': ${grupos(molde)}`)}`));
     // quadro de leitura
     const quadro = o.quadro == null || o.quadro === "aug" ? "aug" : Math.max(0, Math.min(2, +o.quadro || 0));
-    let ini = quadro === "aug" ? rna.indexOf("AUG") : quadro;
+    const ini = quadro === "aug" ? rna.indexOf("AUG") : quadro;
     // AUG precisa estar em qualquer posição (o ribossomo varre a partir do 5')
     const tr = ini >= 0 ? traduzir(rna, ini) : { cods: [], prot: "", parou: false };
     if (quadro === "aug") {
@@ -725,7 +725,7 @@
     }
     if (t === "razao") {
       const casos = [["AaBb", "AaBb", "9 : 3 : 3 : 1"], ["AaBb", "aabb", "1 : 1 : 1 : 1"], ["AaBb", "Aabb", "3 : 3 : 1 : 1"], ["Aa", "Aa", "3 : 1"], ["Aa", "aa", "1 : 1"], ["AaBB", "AaBb", "3 : 1"]];
-      const [p1, p2, cert] = sorteia(casos);
+      const [p1, p2, _cert] = sorteia(casos);
       const r = cruzar(`${p1} x ${p2}`);
       const ops = ["9 : 3 : 3 : 1", "1 : 1 : 1 : 1", "3 : 3 : 1 : 1", "3 : 1", "1 : 1", "1 : 2 : 1", "2 : 1", "9 : 7"];
       return escolha(`Com dominância completa e segregação independente, qual a proporção <b>fenotípica</b> esperada na descendência de <b>${p1} × ${p2}</b>?`, r.razF, embaralhar(ops).slice(0, 5), r.passos);

@@ -1,0 +1,41 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+	"vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+	"files": {
+		"ignoreUnknown": true,
+		"includes": ["**", "!js/dados.js", "!js/descricoes.js", "!**/node_modules", "!**/coverage", "!**/reports", "!**/test-results", "!**/playwright-report"]
+	},
+	"formatter": { "enabled": false },
+	"assist": { "enabled": false },
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"preset": "recommended",
+			"style": {
+				"useTemplate": "off",
+				"useExponentiationOperator": "off",
+				"noDescendingSpecificity": "off",
+				"useConst": "error"
+			},
+			"complexity": {
+				"useArrowFunction": "off",
+				"useOptionalChain": "off",
+				"noImportantStyles": "off",
+				"noUselessEscapeInRegex": "off"
+			},
+			"suspicious": {
+				"useIterableCallbackReturn": "off",
+				"noAssignInExpressions": "off",
+				"noRedundantUseStrict": "off",
+				"noGlobalIsFinite": "off",
+				"noGlobalIsNan": "off",
+				"noTemplateCurlyInString": "off",
+				"noDoubleEquals": "error"
+			},
+			"correctness": {
+				"noUnusedVariables": "warn",
+				"noUnusedFunctionParameters": "off"
+			}
+		}
+	}
+}

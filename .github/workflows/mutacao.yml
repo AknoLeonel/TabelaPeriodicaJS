@@ -1,0 +1,37 @@
+# Testes de mutação (Stryker) são lentos: rodam toda segunda-feira e sob demanda.
+name: Mutação
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      arquivos:
+        description: "Arquivos a mutar, separados por vírgula (vazio = padrão do stryker.config.mjs)"
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  stryker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Stryker
+        run: npm run test:mutation
+        env:
+          MUTAR: ${{ github.event.inputs.arquivos }}
+          EXERCICIOS_POR_TIPO: 20
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorio-de-mutacao
+          path: reports/mutation/
+          retention-days: 14

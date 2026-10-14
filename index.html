@@ -54,11 +54,11 @@
       </label>
 
       <nav class="modes surf-in" id="modes" aria-label="Modo de visualização">
-        <button data-mode="categoria" class="active">Categoria</button>
-        <button data-mode="estado">Estado físico</button>
-        <button data-mode="eletronegatividade">Eletronegatividade</button>
-        <button data-mode="raio">Raio atômico</button>
-        <button data-mode="descoberta">Descoberta</button>
+        <button type="button" data-mode="categoria" class="active">Categoria</button>
+        <button type="button" data-mode="estado">Estado físico</button>
+        <button type="button" data-mode="eletronegatividade">Eletronegatividade</button>
+        <button type="button" data-mode="raio">Raio atômico</button>
+        <button type="button" data-mode="descoberta">Descoberta</button>
         <span class="mode-pill" aria-hidden="true"></span>
       </nav>
     </header>
@@ -71,12 +71,13 @@
 
     <main id="stage">
       <div id="pan" class="pan">
-        <div id="table" class="table" role="grid" aria-label="Tabela periódica"></div>
+        <section id="table" class="table" aria-label="Tabela periódica"></section>
       </div>
-      <div class="zoomctl surf" id="zoomctl" aria-label="Zoom da tabela">
+      <!-- biome-ignore lint/a11y/useSemanticElements: barra de botões; fieldset traria borda e legenda que não fazem sentido aqui -->
+      <div class="zoomctl surf" id="zoomctl" role="group" aria-label="Zoom da tabela">
         <button type="button" data-z="in" aria-label="Ampliar">+</button>
         <button type="button" data-z="out" aria-label="Reduzir">−</button>
-        <button type="button" data-z="fit" aria-label="Ajustar à tela"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+        <button type="button" data-z="fit" aria-label="Ajustar à tela"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       </div>
     </main>
 
@@ -87,7 +88,7 @@
 
     <button class="daily surf" id="daily" type="button" aria-label="Abrir o elemento do dia"></button>
 
-    <footer class="legend" id="legend" aria-label="Legenda"></footer>
+    <footer class="legend" id="legend"></footer>
     <p class="m-hint" id="m-hint">Pince para ampliar · toque num elemento</p>
   </div>
 
@@ -108,17 +109,17 @@
       <div class="d-panels" id="panels"></div>
     </div>
 
-    <button class="d-btn d-close surf" id="d-close" aria-label="Fechar">
-      <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    <button type="button" class="d-btn d-close surf" id="d-close" aria-label="Fechar">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
     </button>
-    <button class="d-btn d-share surf" id="d-share" aria-label="Copiar link deste elemento">
-      <svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg>
+    <button type="button" class="d-btn d-share surf" id="d-share" aria-label="Copiar link deste elemento">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/></svg>
     </button>
-    <button class="d-btn d-prev surf" id="d-prev" aria-label="Elemento anterior">
-      <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+    <button type="button" class="d-btn d-prev surf" id="d-prev" aria-label="Elemento anterior">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
     </button>
-    <button class="d-btn d-next surf" id="d-next" aria-label="Próximo elemento">
-      <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+    <button type="button" class="d-btn d-next surf" id="d-next" aria-label="Próximo elemento">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
     </button>
   </section>
 

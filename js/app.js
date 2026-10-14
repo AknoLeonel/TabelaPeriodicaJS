@@ -142,7 +142,7 @@
   }
 
   function atualizarPreview(el) {
-    if (!el || preview.dataset.n == el.n) return;
+    if (!el || preview.dataset.n === String(el.n)) return;
     preview.dataset.n = el.n;
     const cor = corDe(el);
     preview.style.setProperty("--c", cor);
@@ -1328,7 +1328,7 @@
   function guiaAbrir() { guia.classList.add("on"); guia.setAttribute("aria-hidden", "false"); $("#guia-x").focus({ preventScroll: true }); }
   function guiaFechar() {
     guia.classList.remove("on"); guia.setAttribute("aria-hidden", "true");
-    try { localStorage.setItem(guiaChave, "1"); } catch (e) { /* sem armazenamento */ }
+    try { localStorage.setItem(guiaChave, "1"); } catch (_e) { /* sem armazenamento */ }
   }
   $("#guia-open").addEventListener("click", guiaAbrir);
   $("#guia-x").addEventListener("click", guiaFechar);
@@ -1343,7 +1343,7 @@
     if (e.key === "Escape" && guia.classList.contains("on")) { guiaFechar(); e.stopPropagation(); }
     else if (e.key === "?" && !/input|textarea|select/i.test(e.target.tagName)) { guia.classList.contains("on") ? guiaFechar() : guiaAbrir(); }
   }, true);
-  try { if (!location.hash && !localStorage.getItem(guiaChave)) setTimeout(guiaAbrir, 900); } catch (e) { /* ignora */ }
+  try { if (!location.hash && !localStorage.getItem(guiaChave)) setTimeout(guiaAbrir, 900); } catch (_e) { /* ignora */ }
 
   // ---------------------------------------------------------------------------
   // Início
@@ -1389,7 +1389,7 @@
       await carregarLab();
       const r = origem.getBoundingClientRect();
       await window.LAB.abrir(id, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
-    } catch (e) {
+    } catch (_e) {
       avisar("Não consegui abrir o laboratório. Verifique a conexão.");
     } finally {
       labBotao.classList.remove("carregando");

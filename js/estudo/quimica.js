@@ -7,7 +7,7 @@
   const LAB = window.LAB;
   const Q = window.QCalc;
   const { el, ui } = LAB;
-  const { campo, grade, renderPassos, mostrar, resultadoBox, dicaInicial, debounce } = LAB.estudo;
+  const { campo, grade, mostrar, resultadoBox, dicaInicial, debounce } = LAB.estudo;
 
   const COR_EL = { C: "#8fa0c8", H: "#9ad0ff", O: "#ff6a5a", N: "#6f7bff", S: "#ffd24d", P: "#ff9a4d", Na: "#ff4d6d", Cl: "#5df0b0", Ca: "#ff9e3d", K: "#d27bff", Fe: "#ff8a5a", Mg: "#2ee6b6" };
   const corDe = (s, i) => COR_EL[s] || ["#7aa2ff", "#ffb23d", "#2ee6b6", "#ff7ab8", "#c9a6ff", "#9be15d"][i % 6];
@@ -121,7 +121,7 @@
       const res = resultadoBox();
       raiz.append(f.el, ex.el, tabela, res);
       let linhas = [];
-      let rendCampo, rendSel, rendUn;
+      let rendCampo, rendSel, _rendUn;
       function montarTabela() {
         tabela.innerHTML = ""; res.innerHTML = ""; res._r = null; linhas = [];
         const v = f.texto();

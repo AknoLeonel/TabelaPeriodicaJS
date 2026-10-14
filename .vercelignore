@@ -1,0 +1,15 @@
+node_modules
+tests
+coverage
+reports
+test-results
+playwright-report
+.stryker-tmp
+.github
+*.config.mjs
+*.config.cjs
+.dependency-cruiser.cjs
+knip.json
+biome.json
+codecov.yml
+package-lock.json

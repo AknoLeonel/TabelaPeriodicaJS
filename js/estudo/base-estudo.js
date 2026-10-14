@@ -8,8 +8,8 @@
   const { el, ui } = LAB;
 
   const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
-  const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* sem armazenamento */ } };
-  const ler = (k, padrao) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : padrao; } catch (e) { return padrao; } };
+  const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_e) { /* sem armazenamento */ } };
+  const ler = (k, padrao) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : padrao; } catch (_e) { return padrao; } };
 
   // ---------- componentes ----------
   function campo({ rotulo, ph = "", sufixo = "", tipo = "num", ajuda = "", valor = "", unidades = null, unidadePadrao = null }) {
@@ -85,7 +85,7 @@
     if (extra) raiz.appendChild(extra(r));
     const cab = el("div", "passos-cab");
     cab.innerHTML = `<h4>Passo a passo</h4>`;
-    const cp = ui.botao("Copiar", async () => { try { await navigator.clipboard.writeText(textoPlano(r)); cp.textContent = "Copiado ✓"; setTimeout(() => (cp.textContent = "Copiar"), 1600); } catch (e) { cp.textContent = "Não consegui copiar"; } }, "sec mini");
+    const cp = ui.botao("Copiar", async () => { try { await navigator.clipboard.writeText(textoPlano(r)); cp.textContent = "Copiado ✓"; setTimeout(() => (cp.textContent = "Copiar"), 1600); } catch (_e) { cp.textContent = "Não consegui copiar"; } }, "sec mini");
     cab.appendChild(cp);
     raiz.appendChild(cab);
     const corpo = el("div");
@@ -106,7 +106,7 @@
   const progTodos = () => (progCache ||= ler(PROG, {}));
   const progSalvar = () => guardar(PROG, progTodos());
   const ouvintes = new Set();
-  const avisarProg = (k) => ouvintes.forEach((f) => { try { f(k); } catch (e) { /* ignora */ } });
+  const avisarProg = (k) => ouvintes.forEach((f) => { try { f(k); } catch (_e) { /* ignora */ } });
   const progresso = {
     ler: (k) => progTodos()[k] || { aula: false, teste: 0, h: [], t: 0 },
     registrarResposta(k, certo) {
@@ -157,14 +157,14 @@
     fb.setAttribute("aria-live", "polite");
     const passosBox = el("div", "ex-passos"); passosBox.hidden = true;
     const bts = el("div", "linha-bt");
-    let respondido = false, escolhida = null;
+    let respondido = false, _escolhida = null;
     const btConf = ui.botao(corrigir ? "Conferir" : "Responder", () => conferir());
     const btVer = ui.botao("Ver resolução", () => { passosBox.hidden = !passosBox.hidden; if (!passosBox.hidden) renderPassos(passosBox, ex.passos); }, "sec");
     caixa.hidden = escolha; opcoes.hidden = !escolha;
     if (escolha) ex.opcoes.forEach((html, i) => {
       const b = el("button", "ex-op", `<i>${"ABCDE"[i]}</i><span>${html}</span>`);
       b.type = "button";
-      b.addEventListener("click", () => { if (corrigir) conferir(i); else { escolhida = i; opcoes.querySelectorAll(".ex-op").forEach((x, j) => x.classList.toggle("marcada", j === i)); opc.aoResponder && opc.aoResponder(null, i); } });
+      b.addEventListener("click", () => { if (corrigir) conferir(i); else { _escolhida = i; opcoes.querySelectorAll(".ex-op").forEach((x, j) => x.classList.toggle("marcada", j === i)); opc.aoResponder && opc.aoResponder(null, i); } });
       opcoes.appendChild(b);
     });
     function avaliar(valor) {

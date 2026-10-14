@@ -238,7 +238,7 @@
     // balanceamento por átomos + carga, adicionando H2O/H+/OH- se precisar
     const esp = [...reag.map((e) => ({ e, lado: 1 })), ...prod.map((e) => ({ e, lado: -1 }))];
     let coef = balancearCarga(esp), extras = [];
-    const temCarga = [...reag, ...prod].some((e) => e.carga !== 0);
+    const _temCarga = [...reag, ...prod].some((e) => e.carga !== 0);
     if (!coef) {
       const opc = meio === "basico" ? [["H2O", "OH^-"]] : meio === "acido" ? [["H2O", "H^+"]] : [["H2O", "H^+"], ["H2O", "OH^-"], ["H2O"]];
       for (const add of opc) {
@@ -358,7 +358,7 @@
     const passos = [];
     passos.push(R("Separe cada reagente em íons", tabela(["Reagente", "Cátion", "Ânion"], rs.map((f, i) => [Q.fq(f), `${d[i].nc > 1 ? d[i].nc + " " : ""}${ionHTML(d[i].cat[0], d[i].cat[1])} <small>(${d[i].cat[2]})</small>`, `${d[i].na > 1 ? d[i].na + " " : ""}${ionHTML(d[i].an[0], d[i].an[1])} <small>(${d[i].an[2]})</small>`]))));
     // dupla troca
-    let p1 = montar(d[0].cat, d[1].an), p2 = montar(d[1].cat, d[0].an);
+    const p1 = montar(d[0].cat, d[1].an), p2 = montar(d[1].cat, d[0].an);
     const prods = [p1, p2];
     const extra = [];
     // decomposições

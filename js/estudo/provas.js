@@ -209,7 +209,7 @@
         try {
           const ex = t.motor.gerarExercicio(t.prat);
           if (ex && ex.enunciado) qs.push({ t, ex, resp: null, certo: null, marcada: false });
-        } catch (e) { /* gerador falhou: tenta o próximo tópico */ }
+        } catch (_e) { /* gerador falhou: tenta o próximo tópico */ }
       }
       return embaralhar(qs);
     }
