@@ -221,6 +221,7 @@
             if (respondidas === A.teste.length) {
               const frac = acertos / A.teste.length;
               E.progresso.registrarTeste(ctx.chave, frac);
+              if (window.Obs) window.Obs.evento("estudo.aula_teste", { aula: ctx.chave, acertos, perguntas: A.teste.length, concluida: frac >= 0.75 });
               fim.hidden = false;
               fim.className = "aula-fim " + (frac >= 0.75 ? "ok" : "");
               fim.innerHTML = frac >= 0.75

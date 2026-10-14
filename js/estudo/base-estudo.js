@@ -6,6 +6,7 @@
   "use strict";
   const LAB = window.LAB;
   const { el, ui } = LAB;
+  const obs = window.Obs || { evento() {}, erro() {}, metrica() {}, span: () => ({ fim() {}, falhou() {} }) };
   // utilitários de motion (js/movimento.js); sem eles, tudo funciona sem animação
   const MV = window.Movimento || { entrar: () => Promise.resolve(), revelar: () => Promise.resolve(), deslizar: () => Promise.resolve(), alternar: (_e, a, f) => f(a) };
 
@@ -247,6 +248,7 @@
           if (c) { pts.ok++; pts.seq++; pts.melhor = Math.max(pts.melhor, pts.seq); } else pts.seq = 0;
           guardar(chave, pts);
           progresso.registrarResposta(progChave, c);
+          obs.evento("estudo.resposta", { ferramenta: progChave || tipo, tipo, certo: !!c });
           att();
           if (c) btOutro.classList.remove("sec"); else btOutro.classList.add("sec");
           q.bts.appendChild(btOutro);
@@ -377,6 +379,7 @@
         if (id === "teoria" && !def.teoria && !aulaDe(def)) id = "resolver";
         if (id === "treino" && !def.prat) id = "resolver";
         etapa = id;
+        obs.evento("estudo.etapa", { materia: cfg.id, ferramenta: def.id, etapa: id });
         etapaBt.forEach((b, k) => { b.classList.toggle("on", k === id); b.setAttribute("aria-selected", String(k === id)); });
         if (cfg.aoTrocar) cfg.aoTrocar();
         painel.innerHTML = "";

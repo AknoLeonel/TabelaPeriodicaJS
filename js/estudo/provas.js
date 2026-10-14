@@ -333,6 +333,7 @@
       const hist = E.ler(HIST, []);
       hist.push({ data: Date.now(), n, ok, tempo: Math.round(s.gasto), materias });
       E.guardar(HIST, hist.slice(-60));
+      if (window.Obs) window.Obs.evento("provas.entregue", { questoes: n, acertos: ok, segundos: Math.round(s.gasto), modo: s.modo, materias: materias.length, esgotou: !!esgotou });
 
       raiz.innerHTML = "";
       const nota = ok / n;

@@ -10,6 +10,7 @@
   "use strict";
   const LAB = window.LAB;
   const { el, ui } = LAB;
+  const obs = window.Obs || { evento() {}, erro() {}, metrica() {}, span: () => ({ fim() {}, falhou() {} }) };
   const raiz = document.getElementById("lab");
   const OUT = "cubic-bezier(0.16, 1, 0.3, 1)";
 
@@ -82,11 +83,19 @@
   const definicao = (id) => LAB.modulos.find((x) => x.id === id);
   async function garantir(c, aoProgredir) {
     if (definicao(c.id)) return definicao(c.id);
-    carregarCSS(c.css);
-    await carregarJS(c.js, aoProgredir);
-    const d = definicao(c.id);
-    if (!d) throw new Error("Módulo não registrado: " + c.id);
-    return d;
+    const sp = obs.span("modulo.carregar", { modulo: c.id, grupo: c.grupo, arquivos: c.js.length });
+    try {
+      carregarCSS(c.css);
+      await carregarJS(c.js, aoProgredir);
+      const d = definicao(c.id);
+      if (!d) throw new Error("Módulo não registrado: " + c.id);
+      sp.fim();
+      return d;
+    } catch (e) {
+      sp.falhou(e);
+      obs.erro(e, { modulo: c.id });
+      throw e;
+    }
   }
   // pré-carrega em segundo plano os vizinhos do grupo, sem atrapalhar a interação
   function preCarregar(g) {
@@ -245,6 +254,7 @@
     t.caixa.getAnimations().forEach((a) => a.cancel());
     t.caixa.classList.add("on");
     atual = c.id;
+    obs.evento("modulo.abrir", { modulo: c.id, grupo: c.grupo });
     lembrar(c);
     const s = LAB.selos[m.selo] || LAB.selos.parcial;
     selo.className = "selo " + s.cls;

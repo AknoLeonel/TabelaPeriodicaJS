@@ -1404,7 +1404,8 @@
       await carregarLab();
       const r = origem.getBoundingClientRect();
       await window.LAB.abrir(id, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
-    } catch (_e) {
+    } catch (e) {
+      if (window.Obs) window.Obs.erro(e, { acao: "abrir laboratório", destino: id });
       avisar("Não consegui abrir o laboratório. Verifique a conexão.");
     } finally {
       labBotao.classList.remove("carregando");

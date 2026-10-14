@@ -80,6 +80,45 @@ Botão **Laboratório** (tecla `L`). Cada módulo tem um selo dizendo o que é f
 
 **Desempenho.** A página inicial baixa só a tabela. Cada módulo do laboratório e cada matéria do estudo é baixado quando alguém o abre (os vizinhos são pré-carregados quando o navegador fica ocioso); os laços de animação não criam objetos, a resolução do canvas se adapta e só o módulo visível anima.
 
+## Desenvolvimento
+
+O fluxo de trabalho (Issue → branch → PR com `Closes #N` → deploy) e todos os padrões estão em [AGENTS.md](AGENTS.md), que vale para pessoas e para qualquer agente de IA.
+
+O site não tem build; o `package.json` traz só as ferramentas de desenvolvimento:
+
+```bash
+npm ci
+npm run check          # Biome, contratos de arquitetura, Knip e testes com cobertura
+npm run test:e2e       # Playwright em celular e computador
+npm run test:mutation  # Stryker (testes de mutação)
+```
+
+| Ferramenta | Para quê |
+| --- | --- |
+| **Biome** | lint (acessibilidade, igualdade estrita, variáveis sem uso…) |
+| **dependency-cruiser** + `tests/arch` | contratos de arquitetura: motores puros, aulas só com dados, laboratório independente do estudo, nada de `eval` |
+| **Knip** | arquivos, exportações e dependências sem uso |
+| **commitlint** | mensagens no padrão Conventional Commits |
+| **Vitest** | testes unitários (valores de livro de cada motor) e de integração (todo tipo de exercício e toda aula) |
+| **Playwright** | end-to-end: todas as ferramentas nas três etapas, provas, laboratório, movimento reduzido e observabilidade |
+| **Codecov** | cobertura de código a cada PR (o token fica no segredo `CODECOV_TOKEN` do repositório) |
+| **Stryker** | testes de mutação nos motores, toda segunda-feira no CI |
+
+## Observabilidade
+
+`js/obs.js` segue o modelo do **OpenTelemetry** (traces, logs e métricas) e coleta sozinho os erros, as promessas rejeitadas, os Web Vitals (LCP, CLS, INP, FCP, TTFB) e as tarefas longas. O app registra também o carregamento de cada módulo, a navegação, as respostas dos exercícios e os simulados. Nenhum dado pessoal é enviado, e a privacidade do navegador (Do Not Track e Global Privacy Control) é respeitada.
+
+Nada sai do navegador até um serviço ser configurado em `js/config.js`:
+
+| Serviço | O que preencher | Observação |
+| --- | --- | --- |
+| **OpenTelemetry** | `otlp.endpoint` (ex.: `https://otel.seu-dominio.com`) | OTLP/HTTP em JSON para `/v1/traces`, `/v1/logs` e `/v1/metrics`; o coletor precisa aceitar CORS. Do coletor dá para encaminhar para Datadog, New Relic, Grafana etc. |
+| **Sentry** | `sentry.dsn` | erros com pilha e trilha das ações anteriores |
+| **Datadog RUM** | `datadog.clientToken`, `datadog.applicationId`, `datadog.site` | sessões, erros e ações |
+| **New Relic Browser** | `newrelic.accountID`, `trustKey`, `agentID`, `licenseKey`, `applicationID` | erros e page actions |
+
+São chaves públicas de navegador (aparecem no site de qualquer jeito); nunca coloque tokens secretos no código. O SDK de cada serviço só é baixado se ele estiver configurado, e o endereço de cada SDK pode ser trocado (`sdk`). Para ver os dados no console durante o desenvolvimento, abra o site com `?obs=debug`.
+
 ## Arquivos
 
 | Arquivo | Conteúdo |
@@ -87,6 +126,9 @@ Botão **Laboratório** (tecla `L`). Cada módulo tem um selo dizendo o que é f
 | `index.html` | Estrutura da página e guia “Como usar” |
 | `style.css` | Identidade visual (tokens) e layout responsivo |
 | `js/app.js` | Tabela, modos, ficha, modelo atômico, guia e carregamento sob demanda |
+| `js/movimento.js` | Animações comuns (entrar, sair, esqueleto, progresso, lazy) seguindo a skill design-motion-principles |
+| `js/obs.js`, `js/config.js` | Observabilidade (OpenTelemetry, Sentry, Datadog, New Relic) e sua configuração |
+| `tests/` | Testes unitários, de integração e de arquitetura (Vitest) e end-to-end (Playwright) |
 | `js/dados.js` | Dados físicos dos elementos ([Periodic-Table-JSON](https://github.com/Bowserinator/Periodic-Table-JSON), CC BY-SA 3.0) |
 | `js/descricoes.js` | Textos em português de cada elemento |
 | `js/lab/*.js` | Motor nuclear (`fisica.js`), base de animação (`base.js`), módulos e casca (`lab.js`, com o catálogo de módulos e o carregamento sob demanda) |
