@@ -141,8 +141,15 @@
       const h = typeof op.altura === "function" ? op.altura(w) : op.altura || Math.round(Math.min(Math.max(w * 0.6, 220), 340));
       return { w, h };
     }
+    // lazy: só desenha quando o gráfico chega perto da tela; antes disso, mostra o esqueleto
+    let visivel = false, revelado = false;
+    function reservarAltura() {
+      const { h } = medir();
+      if (cv.style.height !== `${h}px`) cv.style.height = `${h}px`;
+    }
     function desenhar() {
       if (!cena) return;
+      if (!visivel) { reservarAltura(); return; }
       const { w, h } = medir();
       if (cv.style.height !== h + "px") cv.style.height = h + "px";
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -490,6 +497,20 @@
     let quadro = 0;
     const agendar = () => { cancelAnimationFrame(quadro); quadro = requestAnimationFrame(desenhar); };
     new ResizeObserver(agendar).observe(raiz);
+    raiz.classList.add("gf-esperando");
+    const MV = window.Movimento;
+    const aparecer = () => {
+      visivel = true;
+      raiz.classList.remove("gf-esperando");
+      desenhar();
+      // primeira vez: a curva é revelada da esquerda para a direita (momento raro, curto)
+      if (!revelado && cena && MV && !MV.reduz() && cv.animate) {
+        cv.animate([{ clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0 0 0)" }], { duration: 520, easing: MV.EASE.entra });
+      }
+      revelado = true;
+    };
+    if (MV) MV.quandoVisivel(raiz, aparecer);
+    else aparecer();
 
     return {
       el: raiz,

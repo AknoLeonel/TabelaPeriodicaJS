@@ -9,7 +9,7 @@
 (function () {
   "use strict";
   const LAB = window.LAB;
-  const { el } = LAB;
+  const { el, ui } = LAB;
   const raiz = document.getElementById("lab");
   const OUT = "cubic-bezier(0.16, 1, 0.3, 1)";
 
@@ -52,8 +52,10 @@
 
   // ---------- carregamento sob demanda ----------
   const scripts = new Map(); // src -> Promise
-  function carregarJS(lista) {
+  function carregarJS(lista, aoProgredir) {
     // async = false: os arquivos executam na ordem em que foram pedidos
+    let feitos = 0;
+    const conta = () => { feitos++; if (aoProgredir) aoProgredir(feitos / lista.length); };
     return Promise.all(lista.map((src) => {
       if (!scripts.has(src)) {
         scripts.set(src, new Promise((ok, falha) => {
@@ -65,7 +67,7 @@
           document.body.appendChild(sc);
         }));
       }
-      return scripts.get(src);
+      return scripts.get(src).then(conta);
     }));
   }
   function carregarCSS(lista = []) {
@@ -78,10 +80,10 @@
     }
   }
   const definicao = (id) => LAB.modulos.find((x) => x.id === id);
-  async function garantir(c) {
+  async function garantir(c, aoProgredir) {
     if (definicao(c.id)) return definicao(c.id);
     carregarCSS(c.css);
-    await carregarJS(c.js);
+    await carregarJS(c.js, aoProgredir);
     const d = definicao(c.id);
     if (!d) throw new Error("Módulo não registrado: " + c.id);
     return d;
@@ -147,11 +149,49 @@
     raiz.dataset.grupo = grupoAtual;
   }
 
-  function esconderTudo(exceto) {
+  // o módulo que sai faz uma saída curta (mais sutil que a entrada do próximo)
+  function esconderTudo(exceto, comAnimacao = true) {
     telas.forEach((t, id) => {
       if (id === exceto) return;
-      if (t.caixa.classList.contains("on")) { t.instancia.parar(); t.caixa.classList.remove("on"); }
+      if (!t.caixa.classList.contains("on")) return;
+      t.instancia.parar();
+      t.caixa.classList.remove("on");
+      if (!comAnimacao || !t.caixa.classList.contains("est") || !window.Movimento || window.Movimento.reduz()) return;
+      t.caixa.classList.add("saindo");
+      window.Movimento.sair(t.caixa, { y: -6, dur: 140 }).then(() => {
+        t.caixa.classList.remove("saindo");
+        t.caixa.getAnimations().forEach((a) => a.cancel());
+      });
     });
+  }
+
+  // enquanto um módulo é baixado: o esqueleto da tela que vai abrir + progresso real
+  let carregando = null;
+  function mostrarCarregando(c) {
+    tirarCarregando();
+    const caixa = el("div", "mod-esq");
+    caixa.style.setProperty("--m-c", c.cor);
+    const M = window.Movimento;
+    const barra = M ? M.barra("mod-esq-prog") : null;
+    if (barra) caixa.appendChild(barra.el);
+    const partes = c.grupo === "estudo"
+      ? `<div class="mod-esq-est"><aside>${'<div class="skel skel-item"></div>'.repeat(6)}</aside><main></main></div>`
+      : '<div class="mod-esq-lab"><div class="skel skel-canvas"></div><aside></aside></div>';
+    caixa.insertAdjacentHTML("beforeend", partes);
+    if (M) {
+      if (c.grupo === "estudo") caixa.querySelector("main").appendChild(M.esqueleto(["kicker", "titulo", "linha", "abas", "bloco", "linha-curta", "linha"], `Carregando ${c.nome}`));
+      else caixa.querySelector("aside").appendChild(M.esqueleto(["titulo", "bloco", "item", "item", "botao"], `Carregando ${c.nome}`));
+    }
+    corpo.appendChild(caixa);
+    carregando = { caixa, barra };
+    return carregando;
+  }
+  function tirarCarregando() {
+    if (!carregando) return;
+    const { caixa } = carregando;
+    carregando = null;
+    if (window.Movimento && !window.Movimento.reduz()) window.Movimento.sair(caixa, { y: 0, dur: 120 }).then(() => caixa.remove());
+    else caixa.remove();
   }
 
   // "estudo" e "lab" abrem o último módulo usado daquele grupo
@@ -173,10 +213,23 @@
     let m = definicao(c.id);
     if (!m) {
       raiz.classList.add("carregando");
-      try { m = await garantir(c); }
-      catch (_e) { if (meu === pedido) { raiz.classList.remove("carregando"); LAB.avisar("Não consegui carregar este módulo. Verifique a conexão."); } return; }
+      esconderTudo(c.id);
+      const esq = mostrarCarregando(c);
+      try { m = await garantir(c, (f) => esq.barra && esq.barra.definir(f)); }
+      catch (_e) {
+        if (meu === pedido) {
+          raiz.classList.remove("carregando");
+          esq.caixa.innerHTML = "";
+          const erro = el("div", "mod-esq-erro", `<b>Não consegui carregar ${c.nome}.</b><span>Verifique a conexão e tente de novo.</span>`);
+          erro.appendChild(ui.botao("Tentar de novo", () => { tirarCarregando(); atual = null; ativar(c.id); }));
+          esq.caixa.appendChild(erro);
+          LAB.avisar("Não consegui carregar este módulo. Verifique a conexão.");
+        }
+        return;
+      }
       if (meu !== pedido) return; // o usuário já foi para outro módulo
       raiz.classList.remove("carregando");
+      tirarCarregando();
     }
 
     esconderTudo(c.id);
@@ -188,6 +241,8 @@
       t = { caixa, instancia: m.criar(caixa) };
       telas.set(c.id, t);
     }
+    t.caixa.classList.remove("saindo");
+    t.caixa.getAnimations().forEach((a) => a.cancel());
     t.caixa.classList.add("on");
     atual = c.id;
     lembrar(c);
@@ -243,7 +298,8 @@
     const fim = () => {
       raiz.classList.remove("on");
       raiz.setAttribute("aria-hidden", "true");
-      esconderTudo(null);
+      esconderTudo(null, false);
+      tirarCarregando();
       atual = null;
     };
     history.replaceState(null, "", location.pathname + location.search);

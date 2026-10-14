@@ -1325,9 +1325,24 @@
   // ---------------------------------------------------------------------------
   const guia = $("#guia");
   const guiaChave = "elementar.guia.visto";
-  function guiaAbrir() { guia.classList.add("on"); guia.setAttribute("aria-hidden", "false"); $("#guia-x").focus({ preventScroll: true }); }
+  const MV = window.Movimento;
+  function guiaAbrir() {
+    guia.getAnimations().forEach((a) => a.cancel());
+    guia.classList.add("on"); guia.setAttribute("aria-hidden", "false");
+    if (MV) MV.entrar(guia.querySelector(".guia-caixa"), { y: 12, dur: 320 });
+    $("#guia-x").focus({ preventScroll: true });
+  }
   function guiaFechar() {
-    guia.classList.remove("on"); guia.setAttribute("aria-hidden", "true");
+    guia.setAttribute("aria-hidden", "true");
+    // saída mais curta e sutil que a entrada
+    if (MV && !MV.reduz()) {
+      MV.sair(guia.querySelector(".guia-caixa"), { y: 6, dur: 160 });
+      guia.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: MV.EASE.sai }).finished.then(() => {
+        if (guia.getAttribute("aria-hidden") === "true") guia.classList.remove("on");
+        guia.getAnimations().forEach((a) => a.cancel());
+        guia.querySelector(".guia-caixa").getAnimations().forEach((a) => a.cancel());
+      }).catch(() => {});
+    } else guia.classList.remove("on");
     try { localStorage.setItem(guiaChave, "1"); } catch (_e) { /* sem armazenamento */ }
   }
   $("#guia-open").addEventListener("click", guiaAbrir);

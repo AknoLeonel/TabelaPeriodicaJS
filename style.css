@@ -31,6 +31,14 @@
   --f-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* motion (veja js/movimento.js): menor = mais rápido; sair é mais curto que entrar */
+  --dur-micro: 120ms;
+  --dur-curta: 180ms;
+  --dur-media: 260ms;
+  --dur-longa: 420ms;
+  --ease-entra: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-sai: cubic-bezier(0.55, 0, 1, 0.45);
+  --ease-troca: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-cine: cubic-bezier(0.7, 0, 0.2, 1);
   --cell: clamp(46px, min(calc((100vw - 64px) / 18.6), calc((100dvh - 210px) / 9.9)), 96px);
   --gap: calc(var(--cell) * 0.06);
@@ -479,8 +487,9 @@ body.cinema #stage { overflow: hidden; }
 .d-prev { left: 16px; }
 .d-next { right: 16px; }
 
+/* Movimento reduzido: nada se move, mas os estados finais continuam (obrigatório). */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 
 /* ---------- Pan / zoom da tabela ---------- */
@@ -773,3 +782,33 @@ body.cinema .zoomctl, body.cinema .daily, body.cinema .m-hint, body.cinema .hubs
 .guia-estudo em { color: var(--brand); }
 .guia-dica { margin: 16px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--muted); }
 .guia-dica b { color: var(--text); }
+
+/* ===========================================================================
+   Motion: esqueletos, barras de progresso e entradas (js/movimento.js)
+   =========================================================================== */
+@keyframes mv-entra { from { opacity: 0; transform: translateY(6px); } }
+.mv-entra { animation: mv-entra var(--dur-media) var(--ease-entra) backwards; }
+
+.skel-grupo { display: flex; flex-direction: column; gap: 10px; }
+.skel { position: relative; overflow: hidden; border-radius: 8px; background: var(--panel-2); }
+/* brilho linear que atravessa o bloco: indica "carregando" sem pulsar */
+.skel::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.045), transparent);
+  animation: mv-brilho 1.3s linear infinite;
+}
+@keyframes mv-brilho { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .skel::after { display: none; } }
+.skel-kicker { height: 10px; width: 30%; }
+.skel-titulo { height: 26px; width: 55%; border-radius: 6px; }
+.skel-linha { height: 12px; width: 100%; border-radius: 6px; }
+.skel-linha-curta { height: 12px; width: 70%; border-radius: 6px; }
+.skel-abas { height: 52px; border-radius: 10px; }
+.skel-bloco { height: 180px; border-radius: var(--radius); }
+.skel-grafico { height: 240px; border-radius: var(--radius-s); }
+.skel-botao { height: 46px; width: 50%; border-radius: 10px; }
+.skel-item { height: 54px; border-radius: 8px; }
+.skel-canvas { flex: 1; min-height: 260px; border-radius: var(--radius); }
+
+.mv-prog { position: relative; height: 3px; border-radius: 2px; background: var(--line-soft); overflow: hidden; }
+.mv-prog > i { position: absolute; inset: 0; transform-origin: left center; transform: scaleX(var(--p, 0)); background: var(--m-c, var(--brand)); transition: transform var(--dur-media) linear; }
