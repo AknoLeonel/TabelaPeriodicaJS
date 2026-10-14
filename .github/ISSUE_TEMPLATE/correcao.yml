@@ -1,0 +1,35 @@
+name: "[Correção] Algo quebrado ou errado"
+description: Erro na interface, conta errada, texto incorreto ou falha de carregamento.
+title: "[Correção] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: o-que
+    attributes:
+      label: O que acontece
+      description: Descreva o problema. Se for conta ou conteúdo, diga o valor certo e a fonte.
+    validations:
+      required: true
+  - type: textarea
+    id: como
+    attributes:
+      label: Como reproduzir
+      placeholder: "1. Abra #estudo/fisica/optica\n2. ...\n3. Veja ..."
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que deveria acontecer
+    validations:
+      required: true
+  - type: input
+    id: ambiente
+    attributes:
+      label: Navegador e aparelho
+      placeholder: "Chrome 140, Android"
+  - type: textarea
+    id: aceite
+    attributes:
+      label: Critério de aceite
+      value: "- [ ] O problema não acontece mais\n- [ ] Há teste que pegaria o problema de novo"

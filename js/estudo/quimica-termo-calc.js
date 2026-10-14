@@ -25,12 +25,12 @@
   const aviso = (h) => `<p class="aviso-exc"><b>Atenção:</b> ${h}</p>`;
   const item = (nome, h) => `<div class="item"><span class="item-n">${nome}</span>${h}</div>`;
   const tabela = (cab, linhas) => `<div class="tab-rolar"><table class="tb"><thead><tr>${cab.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${linhas.map((l) => `<tr>${l.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
-  const sup = (e) => String(e).replace("-", "−");
+  const _sup = (e) => String(e).replace("-", "−");
   const fin = (v) => typeof v === "number" && isFinite(v);
   const nz = (v) => (v === 0 ? 0 : v); // evita -0
   const RGAS = 8.314; // J/(mol·K)
   const RATM = 0.08206; // L·atm/(mol·K)
-  const KW = 1e-14;
+  const _KW = 1e-14;
   const clean = (t) => String(t || "").replace(/[₀-₉]/g, (c) => "₀₁₂₃₄₅₆₇₈₉".indexOf(c));
 
   function paraK(T, u) {
@@ -186,7 +186,7 @@ BaSO4|s|-1473.2|sulfato de bário
   }
   const GASES_ELEM = new Set(["H", "N", "O", "F", "Cl", "He", "Ne", "Ar", "Kr", "Xe", "Rn"]);
   const faseElem = (s) => (GASES_ELEM.has(s) ? "g" : s === "Br" || s === "Hg" ? "l" : "s");
-  const NOMES_FASE = { s: "sólido", l: "líquido", g: "gás", aq: "aquoso", diamante: "diamante" };
+  const _NOMES_FASE = { s: "sólido", l: "líquido", g: "gás", aq: "aquoso", diamante: "diamante" };
 
   // ---------------------------------------------------------------------------
   // Leitura de equações com fases
@@ -338,7 +338,7 @@ BaSO4|s|-1473.2|sulfato de bário
   // 3. ΔG = ΔH − TΔS
   // ---------------------------------------------------------------------------
   function dG(p) {
-    let { dH, dS, T } = p;
+    const { dH, dS, T } = p;
     if (!fin(dH) || !fin(dS)) return erro("Informe ΔH e ΔS.");
     const passos = [];
     const dHkJ = p.uH === "J/mol" ? dH / 1000 : dH;
@@ -498,7 +498,7 @@ BaSO4|s|-1473.2|sulfato de bário
     const semFase = esp.filter((x) => !x.fase);
     return { ok: true, esp, reag: L.reag, prod: L.prod, semFase: semFase.length === esp.length, algumaSemFase: semFase.length > 0 };
   }
-  const incluida = (x, tipo) => (tipo === "p" ? x.fase === "g" || (!x.fase && !hasFases(x)) : x.fase !== "s" && x.fase !== "l");
+  const _incluida = (x, tipo) => (tipo === "p" ? x.fase === "g" || (!x.fase && !hasFases(x)) : x.fase !== "s" && x.fase !== "l");
   const hasFases = () => false;
   function especiesK(L, tipo) {
     // Kp: só gases (espécies sem fase são tratadas como gases)
@@ -576,7 +576,7 @@ BaSO4|s|-1473.2|sulfato de bário
     if (!fin(Kv)) return erro(de === 0 ? "Alguma espécie do denominador vale 0: o K fica indefinido. Confira os valores." : "Valores inválidos.");
     const nuTxt = E.nume.length ? `<b>${KF(nu)}</b>` : "1", deTxt = E.deno.length ? `<b>${KF(de)}</b>` : "1";
     passos.push(R("Calcule", `${eq(`numerador = ${nuTxt} &nbsp;·&nbsp; denominador = ${deTxt}`)}${eq(`${E.k} = ${frac(KF(nu), KF(de))} = <b>${KF(Kv)}</b>`)}`));
-    const dn = L.esp.filter((x) => x.fase === "g" || (!x.fase && tipo === "p")).reduce((a, x) => a + x.exp, 0);
+    const _dn = L.esp.filter((x) => x.fase === "g" || (!x.fase && tipo === "p")).reduce((a, x) => a + x.exp, 0);
     passos.push(R("O que o valor significa", `<p>${leituraK(Kv)}</p>${dica(`K só muda com a temperatura. Se a equação for invertida, o novo K é 1/K = ${KF(1 / Kv)}; se for multiplicada por n, o novo K é K<sup>n</sup>. A rigor K é adimensional; os livros costumam omitir as unidades.`)}`));
     return { ok: true, passos, valor: Kv, K: Kv, resposta: `${tipo === "p" ? "Kp" : "Kc"} = ${KF(Kv).replace(/<[^>]+>/g, (t) => (t === "<sup>" ? "^" : ""))}`, respostaHTML: `${E.k} = <b>${KF(Kv)}</b>` };
   }
@@ -603,7 +603,7 @@ BaSO4|s|-1473.2|sulfato de bário
     const vals = E.inc.map((x) => (p.valores && p.valores[x.i] != null ? p.valores[x.i] : null));
     if (vals.some((v) => v == null)) return erro("Preencha a concentração (ou pressão) de todas as espécies da expressão.");
     if (vals.some((v) => !(v >= 0))) return erro("Concentrações e pressões não podem ser negativas.");
-    const { nu, de, Q: Qv } = valorQ(E.inc, vals);
+    const { Q: Qv } = valorQ(E.inc, vals);
     if (Number.isNaN(Qv)) return erro("Numerador e denominador valem 0: o quociente fica indefinido. Coloque pelo menos um reagente ou um produto.");
     const passos = [];
     const q = tipo === "p" ? "Q<sub>p</sub>" : "Q<sub>c</sub>", k = tipo === "p" ? "K<sub>p</sub>" : "K<sub>c</sub>";
@@ -763,7 +763,7 @@ BaSO4|s|-1473.2|sulfato de bário
   function kcKp(p) {
     const de = p.de === "p" ? "p" : "c";
     if (!(p.K > 0)) return erro("Informe o valor de K (maior que zero).");
-    let TK = paraK(p.T, p.uT);
+    const TK = paraK(p.T, p.uT);
     if (!(TK > 0)) return erro("Informe a temperatura (maior que 0 K).");
     let dn = p.dn, L = null;
     if (p.eq) {
@@ -983,7 +983,7 @@ BaSO4|s|-1473.2|sulfato de bário
     { n: 2, y: "1/[A]", lei: "1/[A] = 1/[A]<sub>0</sub> + k·t", lin: "1/[A] × t", t12: (A0, k) => 1 / (k * A0), f: (A) => 1 / A, inv: (y) => 1 / y, s: 1 },
   ];
   const T12TXT = { 0: ["[A]<sub>0</sub> ÷ (2k)", "depende da concentração inicial (diminui conforme a reação anda)"], 1: ["ln 2 ÷ k = 0,693 ÷ k", "<b>constante</b>: não depende de [A]<sub>0</sub> (típico de decaimento radioativo)"], 2: ["1 ÷ (k·[A]<sub>0</sub>)", "<b>aumenta</b> conforme a concentração cai (cada meia-vida dura mais que a anterior)"] };
-  function paraSeg(t, u) {
+  function _paraSeg(t, u) {
     const f = { s: 1, min: 60, h: 3600, dia: 86400, ano: 31557600 };
     return t * (f[u] || 1);
   }
@@ -1002,11 +1002,11 @@ BaSO4|s|-1473.2|sulfato de bário
     if (dados.t != null && dados.t < 0) return erro("O tempo não pode ser negativo.");
     let { k, A0, A, t } = dados;
     const y = (v) => F.f(v);
-    const Fn = (v) => N(y(v), 5);
+    const _Fn = (v) => N(y(v), 5);
     const alvo = vazios[0] || "A";
     if (alvo === "A") {
       if (k == null || A0 == null || t == null) return erro("Informe k, [A]₀ e t.");
-      let yv = y(A0) + F.s * k * t;
+      const yv = y(A0) + F.s * k * t;
       if (F.n === 0 && yv <= 0) {
         A = 0;
         const tfim = A0 / k;
@@ -1098,7 +1098,7 @@ BaSO4|s|-1473.2|sulfato de bário
     const melhor = ord[0];
     const dif = melhor.r2 - ord[1].r2;
     const k = melhor.k;
-    const A0 = Math.exp(melhor.F.n === 1 ? melhor.b : 0);
+    const _A0 = Math.exp(melhor.F.n === 1 ? melhor.b : 0);
     let aviso1 = "";
     if (dif < 0.002) aviso1 = aviso(`os R² das duas melhores tentativas (ordens ${melhor.F.n} e ${ord[1].F.n}) são muito próximos. Os dados cobrem pouca variação de concentração (menos de uma meia-vida?) e não dão para distinguir a ordem com segurança. Colete mais pontos até a concentração cair bastante.`);
     if (k <= 0) aviso1 += aviso("a inclinação deu k ≤ 0: os dados não parecem de um reagente sendo consumido.");
@@ -1347,7 +1347,7 @@ BaSO4|s|-1473.2|sulfato de bário
         const L = lerEqK(m.eq);
         const E = exprK(L, "c");
         const vals = {};
-        let ci = 0;
+        const _ci = 0;
         L.esp.forEach((x, i) => { vals[i] = m.c[i] == null ? null : +(m.c[i] * (0.7 + Math.random() * 0.8)).toFixed(2); });
         const vv = E.inc.map((x) => vals[x.i]);
         if (vv.some((v) => v == null || !(v > 0))) continue;
@@ -1410,7 +1410,7 @@ BaSO4|s|-1473.2|sulfato de bário
         const ordem = sorteia([0, 1, 2]);
         const A0 = sorteia([1, 0.8, 2, 0.5, 1.2]);
         const F = FORMAS[ordem];
-        const tf = ordem === 0 ? A0 * 0.75 : ordem === 1 ? 2 * Math.LN2 : 3 / A0;
+        const _tf = ordem === 0 ? A0 * 0.75 : ordem === 1 ? 2 * Math.LN2 : 3 / A0;
         const k = ordem === 0 ? A0 / 100 : ordem === 1 ? Math.LN2 / 25 : 1 / (A0 * 25);
         const ts = [0, 20, 40, 60, 80, 100];
         const pts = ts.map((t) => { const y = F.f(A0) + F.s * k * t; const A = F.inv(y); return { t, A: arred(A, 3) }; });

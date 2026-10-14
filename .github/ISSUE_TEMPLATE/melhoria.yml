@@ -1,0 +1,25 @@
+name: "[Melhoria] Algo que existe vai ficar melhor"
+description: Melhorar uma ferramenta, aula, tela, desempenho, acessibilidade ou qualidade de código.
+title: "[Melhoria] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto
+      description: O que existe hoje e por que melhorar.
+    validations:
+      required: true
+  - type: textarea
+    id: fazer
+    attributes:
+      label: O que fazer
+      value: "- [ ] "
+    validations:
+      required: true
+  - type: textarea
+    id: aceite
+    attributes:
+      label: Critério de aceite
+    validations:
+      required: true

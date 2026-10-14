@@ -6,7 +6,7 @@
   "use strict";
   const LAB = window.LAB;
   const F = window.LabFisica;
-  const { el, ui, clamp, lerp, rnd } = LAB;
+  const { el, ui, clamp, rnd } = LAB;
 
   const RHO = 2804; // raio de curvatura dos dipolos do LHC (m)
   const CIRC = 26659; // circunferência (m)
@@ -162,7 +162,7 @@
     function gerar(tipo) {
       const ev = novoEvento();
       const sq = sqrtS();
-      const c = COMBOS[S.combo];
+      const _c = COMBOS[S.combo];
       const a = A(), b = Bp();
       ev.inicial = { q: a.q + b.q, B: a.B + b.B, L: a.L + b.L };
       const lep = (s, q, Lp) => ({ s, q, B: 0, L: Lp, n: 1 });
@@ -364,7 +364,7 @@
     cena.atualizar = (dt, t) => {
       // rampa de energia
       if (S.acelerando) {
-        const k = Math.pow(alvoE / Math.max(S.Ea, 0.1), 1) ;
+        const _k = Math.pow(alvoE / Math.max(S.Ea, 0.1), 1) ;
         S.Ea = Math.min(alvoE, S.Ea * (1 + dt * (1.2 + 3 * (1 / (1 + S.Ea / alvoE * 9)))) + alvoE * dt * 0.02);
         if (Math.random() < 0.3) LAB.som.tom(160 + 120 * Math.log10(1 + S.Ea / COMBOS[S.combo].min), 0.08, 0.025, "sawtooth");
         if (S.Ea >= alvoE * 0.999) { S.Ea = alvoE; S.acelerando = false; btAcel.disabled = false; LAB.som.tom(520, 0.2, 0.08, "triangle", 880); }
@@ -443,7 +443,7 @@
     }
 
     function desenharDetector(g, t, alfa, zoom, estatico = false) {
-      const { cx, cy, Rd, esc } = L;
+      const { cx, cy, Rd } = L;
       g.save();
       g.globalAlpha = alfa;
       g.translate(cx, cy);
@@ -614,7 +614,7 @@
     cEventos.append(eventosBox, eventoInfo, neutros);
     function montarEventos() {
       eventosBox.innerHTML = "";
-      for (const [id, nome, min, desc] of EVENTOS[S.combo]) {
+      for (const [id, nome, min, _desc] of EVENTOS[S.combo]) {
         const b = el("button", "chip2", nome);
         b.type = "button";
         b.dataset.id = id; b.dataset.min = min;

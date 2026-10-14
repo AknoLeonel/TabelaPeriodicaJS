@@ -1,0 +1,25 @@
+name: "[Nova função] Algo que ainda não existe"
+description: Nova ferramenta, matéria, aula, módulo do laboratório ou integração.
+title: "[Nova função] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Para quem e para quê
+      description: Quem usa (ensino médio, faculdade, professor...) e que problema resolve.
+    validations:
+      required: true
+  - type: textarea
+    id: fazer
+    attributes:
+      label: O que fazer
+      value: "- [ ] Motor com testes de valores de livro\n- [ ] Interface (celular e computador)\n- [ ] Exercícios\n- [ ] Aula no roteiro completo\n- [ ] e2e"
+    validations:
+      required: true
+  - type: textarea
+    id: aceite
+    attributes:
+      label: Critério de aceite
+    validations:
+      required: true

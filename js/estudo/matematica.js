@@ -61,7 +61,7 @@
     abrir(itens[0].id);
     return { recalcular: () => api && api.recalcular && api.recalcular() };
   }
-  const css = (v, padrao) => getComputedStyle(document.documentElement).getPropertyValue(v).trim() || padrao;
+  const _css = (v, padrao) => getComputedStyle(document.documentElement).getPropertyValue(v).trim() || padrao;
 
   // ---------- gráficos (componente comum em js/estudo/grafico.js) ----------
   const fmt = (v) => E.fmtSig(v, 4);

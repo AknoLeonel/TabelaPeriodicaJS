@@ -6,10 +6,13 @@
   "use strict";
   const LAB = window.LAB;
   const { el, ui } = LAB;
+  const obs = window.Obs || { evento() {}, erro() {}, metrica() {}, span: () => ({ fim() {}, falhou() {} }) };
+  // utilitários de motion (js/movimento.js); sem eles, tudo funciona sem animação
+  const MV = window.Movimento || { entrar: () => Promise.resolve(), revelar: () => Promise.resolve(), deslizar: () => Promise.resolve(), alternar: (_e, a, f) => f(a) };
 
   const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
-  const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* sem armazenamento */ } };
-  const ler = (k, padrao) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : padrao; } catch (e) { return padrao; } };
+  const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_e) { /* sem armazenamento */ } };
+  const ler = (k, padrao) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : padrao; } catch (_e) { return padrao; } };
 
   // ---------- componentes ----------
   function campo({ rotulo, ph = "", sufixo = "", tipo = "num", ajuda = "", valor = "", unidades = null, unidadePadrao = null }) {
@@ -59,7 +62,7 @@
     raiz.appendChild(ol);
     if (guiado && passos.length > 1) {
       const bt = ui.botao("Mostrar o próximo passo →", () => {
-        if (visiveis < passos.length) { lis[visiveis].classList.remove("oculto"); lis[visiveis].scrollIntoView({ block: "nearest", behavior: "smooth" }); visiveis++; }
+        if (visiveis < passos.length) { lis[visiveis].classList.remove("oculto"); MV.revelar(lis[visiveis]); lis[visiveis].scrollIntoView({ block: "nearest", behavior: "smooth" }); visiveis++; }
         if (visiveis >= passos.length) bt.remove();
         else bt.textContent = `Mostrar o próximo passo (${visiveis}/${passos.length}) →`;
       });
@@ -77,15 +80,18 @@
   }
   // mostra a resposta + passo a passo
   function mostrar(raiz, r, { extra } = {}) {
+    // recalcular a cada tecla é frequente: só anima quando o resultado aparece (não a cada atualização)
+    const apareceu = !(raiz._r && raiz._r.ok);
     raiz.innerHTML = "";
-    if (!r.ok) { raiz.appendChild(el("div", "res-erro", `<b>Hmm, não deu:</b> ${r.erro}`)); return; }
+    if (!r.ok) { raiz._r = r; const e = el("div", "res-erro", `<b>Hmm, não deu:</b> ${r.erro}`); raiz.appendChild(e); return; }
     const card = el("div", "resp");
+    if (apareceu) requestAnimationFrame(() => MV.entrar(card, { y: 6, dur: 220 }));
     card.innerHTML = `<small>Resposta</small><div class="resp-v">${r.respostaHTML || r.resposta}</div>`;
     raiz.appendChild(card);
     if (extra) raiz.appendChild(extra(r));
     const cab = el("div", "passos-cab");
     cab.innerHTML = `<h4>Passo a passo</h4>`;
-    const cp = ui.botao("Copiar", async () => { try { await navigator.clipboard.writeText(textoPlano(r)); cp.textContent = "Copiado ✓"; setTimeout(() => (cp.textContent = "Copiar"), 1600); } catch (e) { cp.textContent = "Não consegui copiar"; } }, "sec mini");
+    const cp = ui.botao("Copiar", async () => { try { await navigator.clipboard.writeText(textoPlano(r)); cp.textContent = "Copiado ✓"; setTimeout(() => (cp.textContent = "Copiar"), 1600); } catch (_e) { cp.textContent = "Não consegui copiar"; } }, "sec mini");
     cab.appendChild(cp);
     raiz.appendChild(cab);
     const corpo = el("div");
@@ -106,7 +112,7 @@
   const progTodos = () => (progCache ||= ler(PROG, {}));
   const progSalvar = () => guardar(PROG, progTodos());
   const ouvintes = new Set();
-  const avisarProg = (k) => ouvintes.forEach((f) => { try { f(k); } catch (e) { /* ignora */ } });
+  const avisarProg = (k) => ouvintes.forEach((f) => { try { f(k); } catch (_e) { /* ignora */ } });
   const progresso = {
     ler: (k) => progTodos()[k] || { aula: false, teste: 0, h: [], t: 0 },
     registrarResposta(k, certo) {
@@ -157,14 +163,14 @@
     fb.setAttribute("aria-live", "polite");
     const passosBox = el("div", "ex-passos"); passosBox.hidden = true;
     const bts = el("div", "linha-bt");
-    let respondido = false, escolhida = null;
+    let respondido = false, _escolhida = null;
     const btConf = ui.botao(corrigir ? "Conferir" : "Responder", () => conferir());
     const btVer = ui.botao("Ver resolução", () => { passosBox.hidden = !passosBox.hidden; if (!passosBox.hidden) renderPassos(passosBox, ex.passos); }, "sec");
     caixa.hidden = escolha; opcoes.hidden = !escolha;
     if (escolha) ex.opcoes.forEach((html, i) => {
       const b = el("button", "ex-op", `<i>${"ABCDE"[i]}</i><span>${html}</span>`);
       b.type = "button";
-      b.addEventListener("click", () => { if (corrigir) conferir(i); else { escolhida = i; opcoes.querySelectorAll(".ex-op").forEach((x, j) => x.classList.toggle("marcada", j === i)); opc.aoResponder && opc.aoResponder(null, i); } });
+      b.addEventListener("click", () => { if (corrigir) conferir(i); else { _escolhida = i; opcoes.querySelectorAll(".ex-op").forEach((x, j) => x.classList.toggle("marcada", j === i)); opc.aoResponder && opc.aoResponder(null, i); } });
       opcoes.appendChild(b);
     });
     function avaliar(valor) {
@@ -230,8 +236,11 @@
     att();
     const zona = el("div", "ex-zona");
     const btOutro = ui.botao("Outro exercício →", () => novo(), "sec");
+    let primeira = true;
     function novo() {
       const ex = motor.gerarExercicio(tipo);
+      if (!primeira) requestAnimationFrame(() => MV.deslizar(zona.firstElementChild, 1));
+      primeira = false;
       const q = questao(zona, ex, {
         motor,
         aoResponder(c) {
@@ -239,6 +248,7 @@
           if (c) { pts.ok++; pts.seq++; pts.melhor = Math.max(pts.melhor, pts.seq); } else pts.seq = 0;
           guardar(chave, pts);
           progresso.registrarResposta(progChave, c);
+          obs.evento("estudo.resposta", { ferramenta: progChave || tipo, tipo, certo: !!c });
           att();
           if (c) btOutro.classList.remove("sec"); else btOutro.classList.add("sec");
           q.bts.appendChild(btOutro);
@@ -306,9 +316,10 @@
       const segGuia = ui.segmentado({ itens: [{ id: "t", rotulo: "Mostrar a solução inteira" }, { id: "g", rotulo: "Um passo de cada vez" }], valor: guiado ? "g" : "t", onChange: (id) => { guiado = id === "g"; guardar("estudo.guiado", guiado); repintarPassos(); } });
       ajustes.append(el("p", "est-ajustes-rot", "Passo a passo"), segGuia.el);
       ajustesBt.addEventListener("click", () => {
-        ajustes.hidden = !ajustes.hidden;
-        ajustesBt.setAttribute("aria-expanded", String(!ajustes.hidden));
-        ajustesBt.classList.toggle("on", !ajustes.hidden);
+        const abre = ajustes.hidden;
+        ajustesBt.setAttribute("aria-expanded", String(abre));
+        ajustesBt.classList.toggle("on", abre);
+        MV.alternar(ajustes, abre, (v) => { ajustes.hidden = !v; });
       });
 
       // lista de ferramentas
@@ -334,12 +345,19 @@
         }
       }
       progresso.ouvir(pintarDominio);
-      const fecharLista = () => { lista.classList.remove("aberta"); pick.setAttribute("aria-expanded", "false"); };
+      const listaVisivel = () => getComputedStyle(pick).display !== "none"; // no computador a lista é fixa ao lado
+      const fecharLista = () => {
+        if (!lista.classList.contains("aberta")) return;
+        pick.setAttribute("aria-expanded", "false");
+        if (!listaVisivel()) { lista.classList.remove("aberta"); return; }
+        MV.alternar(lista, false, (v) => lista.classList.toggle("aberta", v));
+      };
       pick.addEventListener("click", () => {
         const abre = !lista.classList.contains("aberta");
-        lista.classList.toggle("aberta", abre);
         pick.setAttribute("aria-expanded", String(abre));
-        if (abre) itens.get(ferrAtual.def.id)?.scrollIntoView({ block: "nearest" });
+        if (!abre) return fecharLista();
+        MV.alternar(lista, true, (v) => lista.classList.toggle("aberta", v));
+        itens.get(ferrAtual.def.id)?.scrollIntoView({ block: "nearest" });
       });
 
       // etapas
@@ -361,12 +379,16 @@
         if (id === "teoria" && !def.teoria && !aulaDe(def)) id = "resolver";
         if (id === "treino" && !def.prat) id = "resolver";
         etapa = id;
+        obs.evento("estudo.etapa", { materia: cfg.id, ferramenta: def.id, etapa: id });
         etapaBt.forEach((b, k) => { b.classList.toggle("on", k === id); b.setAttribute("aria-selected", String(k === id)); });
         if (cfg.aoTrocar) cfg.aoTrocar();
         painel.innerHTML = "";
         painel.dataset.etapa = id;
         const area = el("div", "est-area");
         painel.appendChild(area);
+        // troca de etapa/ferramenta: entrada curta (é uma interação frequente)
+        if (painel._jaMostrou) MV.entrar(area, { y: 6, dur: 200 });
+        painel._jaMostrou = true;
         if (id === "teoria" && aulaDe(def) && LAB.estudo.renderAula) {
           LAB.estudo.renderAula(area, aulaDe(def), { chave: `${cfg.id}/${def.id}`, nome: def.nome, irEtapa, irPara: ctx.irPara, ferr: FERR, temPratica: !!def.prat });
           ferrAtual = { def, api: null };

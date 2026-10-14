@@ -88,7 +88,7 @@
       bt("⤢", "Enquadrar de novo", () => { vista = null; desenhar(); });
     }
 
-    let cena = null, auto = null, vista = null, ponteiro = null, tamanho = { w: 0, h: 0 }, layout = null;
+    let cena = null, auto = null, vista = null, ponteiro = null, _tamanho = { w: 0, h: 0 }, layout = null;
 
     // ---------- enquadramento automático ----------
     function enquadrar() {
@@ -133,7 +133,7 @@
       }
       return { x0, x1, y0, y1 };
     }
-    function avaliar(f, x) { try { const y = f(x); return typeof y === "number" ? y : NaN; } catch (e) { return NaN; } }
+    function avaliar(f, x) { try { const y = f(x); return typeof y === "number" ? y : NaN; } catch (_e) { return NaN; } }
 
     // ---------- desenho ----------
     function medir() {
@@ -141,13 +141,20 @@
       const h = typeof op.altura === "function" ? op.altura(w) : op.altura || Math.round(Math.min(Math.max(w * 0.6, 220), 340));
       return { w, h };
     }
+    // lazy: só desenha quando o gráfico chega perto da tela; antes disso, mostra o esqueleto
+    let visivel = false, revelado = false;
+    function reservarAltura() {
+      const { h } = medir();
+      if (cv.style.height !== `${h}px`) cv.style.height = `${h}px`;
+    }
     function desenhar() {
       if (!cena) return;
+      if (!visivel) { reservarAltura(); return; }
       const { w, h } = medir();
       if (cv.style.height !== h + "px") cv.style.height = h + "px";
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
-      tamanho = { w, h };
+      _tamanho = { w, h };
       const g = cv.getContext("2d");
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       g.clearRect(0, 0, w, h);
@@ -163,7 +170,7 @@
         const labs = marcasEixo(y0, y1, passoY).map((v) => fmtEixo(v, passoY));
         m = { l: Math.ceil(Math.max(...labs.map((t) => g.measureText(t).width), 10)) + 12, r: 14, t: op.rotY || cena.rotY ? 24 : 10, b: op.rotX || cena.rotX ? 40 : 24 };
       }
-      let W = w - m.l - m.r, H = h - m.t - m.b;
+      const W = w - m.l - m.r, H = h - m.t - m.b;
       if (op.igual) { // mesma escala nos dois eixos (círculos continuam redondos)
         const ex = (x1 - x0) / W, ey = (y1 - y0) / H;
         // no modo "dados" o início dos eixos fica onde está (o chão continua no chão)
@@ -398,7 +405,7 @@
     }
     function desenharPonteiro(g, T, corBase) {
       const a = alvoDoPonteiro();
-      const nx = cena.nomeX || "x", ny = cena.nomeY || "y";
+      const nx = cena.nomeX || "x", _ny = cena.nomeY || "y";
       if (!a) { leitura.textContent = dicaPadrao; leitura.classList.remove("on"); return; }
       const { X, Y, m, H } = layout;
       leitura.classList.add("on");
@@ -490,6 +497,20 @@
     let quadro = 0;
     const agendar = () => { cancelAnimationFrame(quadro); quadro = requestAnimationFrame(desenhar); };
     new ResizeObserver(agendar).observe(raiz);
+    raiz.classList.add("gf-esperando");
+    const MV = window.Movimento;
+    const aparecer = () => {
+      visivel = true;
+      raiz.classList.remove("gf-esperando");
+      desenhar();
+      // primeira vez: a curva é revelada da esquerda para a direita (momento raro, curto)
+      if (!revelado && cena && MV && !MV.reduz() && cv.animate) {
+        cv.animate([{ clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0 0 0)" }], { duration: 520, easing: MV.EASE.entra });
+      }
+      revelado = true;
+    };
+    if (MV) MV.quandoVisivel(raiz, aparecer);
+    else aparecer();
 
     return {
       el: raiz,

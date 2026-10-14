@@ -10,7 +10,7 @@
   "use strict";
   const NODE = typeof module !== "undefined" && module.exports;
   const Q = NODE ? require("./quimica-calc.js") : raiz.QCalc;
-  const F1 = NODE ? (() => { try { return require("./fisica-calc.js"); } catch (e) { return null; } })() : raiz.FCalc;
+  const F1 = NODE ? (() => { try { return require("./fisica-calc.js"); } catch (_e) { return null; } })() : raiz.FCalc;
   const { lerNumero } = Q;
   const PI = Math.PI;
   const gPadrao = () => (F1 && F1.config && F1.config.g) || 9.8;
@@ -274,7 +274,7 @@
   function cenaOptica(T, fs, p, o, pi, i) {
     const fa = Math.abs(fs);
     const xi = pi == null ? null : T.espelho ? -pi : pi;
-    let X = Math.max(p, 2 * fa, xi == null ? 0 : Math.min(Math.abs(xi), 4 * Math.max(p, 2 * fa))) * 1.2;
+    const X = Math.max(p, 2 * fa, xi == null ? 0 : Math.min(Math.abs(xi), 4 * Math.max(p, 2 * fa))) * 1.2;
     const ia = i == null ? 0 : Math.min(Math.abs(i), 4 * o);
     const H = Math.max(o, ia) * 1.35;
     const series = [];

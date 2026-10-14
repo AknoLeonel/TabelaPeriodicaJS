@@ -46,7 +46,7 @@
     const ul = new Int16Array(MAXN).fill(-1); // último núcleo com que o nêutron interagiu (uma chance por contato)
     let nn = 0;
     const fx = [];
-    let toqueMarca = [];
+    const toqueMarca = [];
 
     const cena = new LAB.Cena(canvas, { dprMax: 2 });
 

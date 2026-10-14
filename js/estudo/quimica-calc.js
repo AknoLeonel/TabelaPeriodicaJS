@@ -38,7 +38,7 @@
     if (v === 0) return "0";
     const e = Math.floor(Math.log10(Math.abs(v)));
     const m = v / Math.pow(10, e);
-    let ms = m.toFixed(casas).replace(/0+$/, "").replace(/\.$/, "").replace(".", ",");
+    const ms = m.toFixed(casas).replace(/0+$/, "").replace(/\.$/, "").replace(".", ",");
     return `${ms}×10<sup>${String(e).replace("-", "−")}</sup>`;
   }
   // fórmula química com subscritos
@@ -229,7 +229,7 @@
   const fZero = (a) => a.n === 0n;
 
   function lerEquacao(txt) {
-    let s = String(txt || "").replace(/[₀-₉]/g, (c) => SUBS[c]).trim();
+    const s = String(txt || "").replace(/[₀-₉]/g, (c) => SUBS[c]).trim();
     if (!s) return { ok: false, erro: "Digite uma equação, por exemplo H2 + O2 -> H2O." };
     const lados = s.split(/->|→|⟶|=>|<=>|⇌|=|⇒/);
     if (lados.length !== 2 || !lados[0].trim() || !lados[1].trim()) return { ok: false, erro: "Separe reagentes e produtos com uma seta (-> ou =). Exemplo: H2 + O2 -> H2O." };

@@ -129,7 +129,7 @@
     if (!(n === 2 || n === 3) || M.some((l) => l.length !== n + 1 || l.some((v) => !fin(v)))) return erro("Preencha todos os coeficientes com números.");
     const vars = ["x", "y", "z"].slice(0, n);
     let A;
-    try { A = M.map((l) => l.map((v) => F.de(v))); } catch (e) { return erro("Coeficiente inválido."); }
+    try { A = M.map((l) => l.map((v) => F.de(v))); } catch (_e) { return erro("Coeficiente inválido."); }
     const passos = [];
     const linhaTxt = (l) => {
       let s = "";
@@ -320,7 +320,7 @@
   const RAD = Math.PI / 180;
   const NOTAVEIS = { 0: ["0", "1", "0"], 30: [frac("1", "2"), frac("√3", "2"), frac("√3", "3")], 45: [frac("√2", "2"), frac("√2", "2"), "1"], 60: [frac("√3", "2"), frac("1", "2"), "√3"], 90: ["1", "0", "não existe"], 180: ["0", "−1", "0"], 270: ["−1", "0", "não existe"], 360: ["0", "1", "0"] };
   function trigAngulo(p) {
-    let g = p.unidade === "rad" ? p.ang / RAD : p.ang;
+    const g = p.unidade === "rad" ? p.ang / RAD : p.ang;
     if (!fin(g)) return erro("Digite o ângulo.");
     const passos = [];
     const red = ((g % 360) + 360) % 360;
@@ -398,7 +398,7 @@
         if (!conh || !outro) return erro("Combinação de dados não suportada: informe um lado e o ângulo oposto a ele, ou o ângulo entre os dois lados.");
         const sx = (v[outro[0]] * s(v[conh[1]])) / v[conh[0]];
         if (sx > 1 + 1e-12) return erro(`sen ${outro[1]} daria ${N(sx)} &gt; 1: não existe triângulo com esses dados.`);
-        let g1 = Math.asin(Math.min(1, sx)) / RAD;
+        const g1 = Math.asin(Math.min(1, sx)) / RAD;
         const g2 = 180 - g1;
         const duas = g2 !== g1 && v[conh[1]] + g2 < 180;
         v[outro[1]] = g1;
@@ -664,7 +664,7 @@
         valor = m;
         passos.push(R(`Valor em ${xv} = ${N(p.x0)}`, `${eq(`f′(${N(p.x0)}) = <b>${N(m, 6)}</b>`)}<p>É a inclinação da reta tangente ao gráfico nesse ponto (a taxa de variação instantânea).</p>`));
         if (fin(y0) && fin(m)) { tang = { m, b: y0 - m * p.x0 }; passos.push(R("Reta tangente", eq(`y − ${par(y0)} = ${N(m, 6)}·(x − ${par(p.x0)}) → y = <b>${N(m, 6)}x ${tang.b < 0 ? "−" : "+"} ${N(Math.abs(tang.b), 6)}</b>`))); }
-      } catch (e) { /* ponto fora do domínio */ }
+      } catch (_e) { /* ponto fora do domínio */ }
     }
     // conferência numérica
     const xt = fin(p.x0) ? p.x0 : 0.7;
@@ -672,13 +672,13 @@
       const h = 1e-5, fx = (t) => X.avaliar(L.ast, { [xv]: t });
       const num_ = (fx(xt + h) - fx(xt - h)) / (2 * h), sim = X.avaliar(ds, { [xv]: xt });
       if (fin(num_) && fin(sim)) passos.push(R("Conferência numérica", `${eq(`[f(${N(xt)} + h) − f(${N(xt)} − h)] / 2h ≈ ${N(num_, 6)} &nbsp; vs &nbsp; f′(${N(xt)}) = ${N(sim, 6)} ${Math.abs(num_ - sim) <= 1e-4 * Math.max(1, Math.abs(sim)) ? "✓" : "✗"}`)}${dica("A derivada é o limite dessa razão quando h → 0.")}`));
-    } catch (e) { /* ignora */ }
+    } catch (_e) { /* ignora */ }
     return { ok: true, passos, d: ds, valor: valor != null ? valor : NaN, tangente: tang, resposta: `f'(${xv}) = ${semTags(H(ds))}${valor != null ? `; f'(${N(p.x0)}) = ${N(valor, 6)}` : ""}`, respostaHTML: `f′(${xv}) = <b>${H(ds)}</b>${valor != null ? `<br>f′(${N(p.x0)}) = <b>${N(valor, 6)}</b>` : ""}` };
   }
 
   // polinômio: {grau: coef}
   function paraPoli(a, x) {
-    if (!temVar(a, x)) { try { const v = X.avaliar(a, {}); return fin(v) ? { 0: v } : null; } catch (e) { return null; } }
+    if (!temVar(a, x)) { try { const v = X.avaliar(a, {}); return fin(v) ? { 0: v } : null; } catch (_e) { return null; } }
     if (a.t === "var") return { 1: 1 };
     if (a.t === "neg") { const p = paraPoli(a.a, x); return p && mapa(p, (c) => -c); }
     if (a.t === "bin") {
@@ -816,11 +816,11 @@
       const h = 1e-5, Fx = (t) => X.avaliar(F, { [xv]: t }), fx = X.avaliar(L.ast, { [xv]: xt });
       const dF = (Fx(xt + h) - Fx(xt - h)) / (2 * h);
       if (fin(dF) && fin(fx)) passos.push(R("Confira derivando", `${eq(`F′(${N(xt)}) ≈ ${N(dF, 6)} &nbsp; e &nbsp; f(${N(xt)}) = ${N(fx, 6)} ${Math.abs(dF - fx) <= 1e-4 * Math.max(1, Math.abs(fx)) ? "✓" : "✗"}`)}`));
-    } catch (e) { /* fora do domínio */ }
+    } catch (_e) { /* fora do domínio */ }
     let valor = NaN;
     if (fin(p.a) && fin(p.b)) {
       let Fa, Fb;
-      try { Fa = X.avaliar(F, { [xv]: p.a }); Fb = X.avaliar(F, { [xv]: p.b }); } catch (e) { return erro("Não consegui avaliar a primitiva nos limites."); }
+      try { Fa = X.avaliar(F, { [xv]: p.a }); Fb = X.avaliar(F, { [xv]: p.b }); } catch (_e) { return erro("Não consegui avaliar a primitiva nos limites."); }
       if (!fin(Fa) || !fin(Fb)) return { ok: false, erro: "A primitiva não está definida em algum limite (a função tem uma assíntota no intervalo?).", passos };
       valor = Fb - Fa;
       passos.push(R("Teorema Fundamental do Cálculo", `${eq(`∫<sub>${N(p.a)}</sub><sup>${N(p.b)}</sup> f d${xv} = F(${N(p.b)}) − F(${N(p.a)}) = ${N(Fb, 6)} − ${par(Fa)} = <b>${N(valor, 6)}</b>`)}`));
@@ -842,9 +842,9 @@
   function estudoFuncao(p) {
     const L = lerFuncao(p.f, "x");
     if (!L.ok) return L;
-    let { x0 = -10, x1 = 10 } = p;
+    const { x0 = -10, x1 = 10 } = p;
     if (!(x1 > x0)) return erro("O intervalo deve ter x mínimo menor que x máximo.");
-    const f = (t) => { try { return X.avaliar(L.ast, { x: t }); } catch (e) { return NaN; } };
+    const f = (t) => { try { return X.avaliar(L.ast, { x: t }); } catch (_e) { return NaN; } };
     const n = 600, pts = [];
     for (let i = 0; i <= n; i++) { const t = x0 + ((x1 - x0) * i) / n; pts.push([t, f(t)]); }
     // raízes
@@ -862,7 +862,7 @@
     // extremos locais por mudança de inclinação
     const extremos = [];
     for (let i = 1; i < n; i++) {
-      const [, ya] = pts[i - 1], [t, y] = pts[i], [, yb] = pts[i + 1];
+      const [, ya] = pts[i - 1], [_t, y] = pts[i], [, yb] = pts[i + 1];
       if (![ya, y, yb].every(fin)) continue;
       if ((y > ya && y >= yb) || (y < ya && y <= yb)) {
         let a = pts[i - 1][0], b = pts[i + 1][0];

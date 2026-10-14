@@ -6,7 +6,7 @@
   "use strict";
   const LAB = window.LAB;
   const F = window.LabFisica;
-  const { el, ui, clamp, lerp, rnd } = LAB;
+  const { el, ui, clamp, rnd } = LAB;
 
   const Bn = (Z, A) => F.ligacao(Z, A - Z);
 
@@ -59,7 +59,7 @@
 
     const cena = new LAB.Cena(canvas, { dprMax: 2 });
 
-    const logT = (T) => Math.log10(T);
+    const _logT = (T) => Math.log10(T);
     function estagioAtivo(T) {
       let a = -1;
       for (let i = 0; i < ESTAGIOS.length; i++) if (T >= ESTAGIOS[i].T) a = i;
@@ -111,13 +111,13 @@
 
     function fundir(a, b, est) {
       const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2;
-      const T = S.T;
+      const _T = S.T;
       const id = est.id;
-      let sai = [];
+      let _sai = [];
       if (id === "H") {
         if (a.tipo === "p" && b.tipo === "p") { a.tipo = "D"; b.vida = -1; }
         else if ((a.tipo === "D" && b.tipo === "p") || (a.tipo === "p" && b.tipo === "D")) { a.tipo = "He3"; b.vida = -1; }
-        else if (a.tipo === "He3" && b.tipo === "He3") { a.tipo = "He4"; b.tipo = "p"; sai = ["p"]; }
+        else if (a.tipo === "He3" && b.tipo === "He3") { a.tipo = "He4"; b.tipo = "p"; _sai = ["p"]; }
         else return false;
       } else if (id === "He") {
         if (a.tipo === "He4" && b.tipo === "He4") { a.tipo = "Be8"; a.vida = 0.4; b.vida = -1; }

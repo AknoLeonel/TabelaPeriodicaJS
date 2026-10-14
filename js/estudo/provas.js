@@ -15,6 +15,7 @@
   const { el, ui } = LAB;
   const E = LAB.estudo;
   const P = E.progresso;
+  const MV = window.Movimento || { deslizar: () => Promise.resolve(), barra: null };
   const COR = "#f2c14e";
   const HIST = "estudo.provas.historico";
 
@@ -209,7 +210,7 @@
         try {
           const ex = t.motor.gerarExercicio(t.prat);
           if (ex && ex.enunciado) qs.push({ t, ex, resp: null, certo: null, marcada: false });
-        } catch (e) { /* gerador falhou: tenta o próximo tópico */ }
+        } catch (_e) { /* gerador falhou: tenta o próximo tópico */ }
       }
       return embaralhar(qs);
     }
@@ -224,6 +225,9 @@
       const relog = el("span", "pv-relogio");
       const info = el("span", "pv-info");
       barraTopo.append(info, relog, prog);
+      // progresso do simulado: questões respondidas
+      const feitas = MV.barra ? MV.barra("pv-feitas") : null;
+      if (feitas) { feitas.el.setAttribute("aria-label", "Questões respondidas"); barraTopo.appendChild(feitas.el); }
       const zona = el("div", "pv-zona");
       const nav = el("div", "linha-bt pv-nav");
       const btAnt = ui.botao("← Anterior", () => ir(sessao.i - 1), "sec");
@@ -243,6 +247,8 @@
       function ir(k) {
         if (k < 0 || k >= sessao.qs.length) return;
         guardarDigitado();
+        const direcao = k >= sessao.i ? 1 : -1;
+        const trocou = k !== sessao.i || !zona.childElementCount;
         sessao.i = k;
         const q = sessao.qs[k];
         atual = E.questao(zona, q.ex, {
@@ -260,11 +266,13 @@
           else atual.inp.value = q.resp;
         }
         if (sessao.modo === "treino" && q.certo != null) atual.revelar(q.resp);
+        if (trocou) MV.deslizar(zona.firstElementChild, direcao);
         pintar();
         atual.focar();
         topo();
       }
       function pintar() {
+        if (feitas) feitas.definir(sessao.qs.filter((x) => x.resp != null).length / sessao.qs.length);
         const s = sessao, q = s.qs[s.i];
         info.innerHTML = `<b>${s.i + 1}</b> de ${s.qs.length} · ${s.modo === "prova" ? "correção no fim" : "correção na hora"}`;
         prog.innerHTML = "";
@@ -325,6 +333,7 @@
       const hist = E.ler(HIST, []);
       hist.push({ data: Date.now(), n, ok, tempo: Math.round(s.gasto), materias });
       E.guardar(HIST, hist.slice(-60));
+      if (window.Obs) window.Obs.evento("provas.entregue", { questoes: n, acertos: ok, segundos: Math.round(s.gasto), modo: s.modo, materias: materias.length, esgotou: !!esgotou });
 
       raiz.innerHTML = "";
       const nota = ok / n;

@@ -20,7 +20,7 @@
   const eq = (h) => `<div class="eq">${h}</div>`;
   const R = (t, h) => ({ t, h });
   const frac = Q.frac;
-  const item = (nome, h) => `<div class="item"><span class="item-n">${nome}</span>${h}</div>`;
+  const _item = (nome, h) => `<div class="item"><span class="item-n">${nome}</span>${h}</div>`;
   const tabela = (cab, linhas) =>
     `<div class="tab-rolar"><table class="tb"><thead><tr>${cab.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${linhas.map((l) => `<tr>${l.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   const dica = (h) => `<small class="dica">${h}</small>`;
@@ -269,7 +269,7 @@
     const passos = [];
     const expr = lista.map((t) => `<b>${esc(t)}</b>`).join(` ${simb} `);
     passos.push(R("Conta com todos os algarismos", `<div class="eq">${expr} = ${n(exato, 12)}</div>${dica("Primeiro faça a conta normalmente, sem arredondar nada no meio do caminho. O arredondamento só vale no resultado final.")}`));
-    let x, regra, motivo;
+    let x, _regra, motivo;
     if (op === "+" || op === "-") {
       const casas = ans.map((a) => a.casas);
       const q = Math.min(...casas);
@@ -278,7 +278,7 @@
       x = arredN(decR, decR.valor === 0 ? 0 : analisarAS(decR).E + q + 1, true);
       const minimo = ans.findIndex((a) => a.casas === q);
       motivo = `O menos preciso é ${esc(lista[minimo])}, com ${q >= 0 ? q + " casa" + (q === 1 ? "" : "s") + " decimal" + (q === 1 ? "" : "is") : "precisão até a casa 10^" + -q}. O resultado fica com essa mesma precisão.`;
-      regra = `casas = ${q}`;
+      _regra = `casas = ${q}`;
       const res = fmtDec(x, Math.max(q, 0));
       passos.push(R("Arredonde para a casa do menos preciso", `<p>${motivo}</p><div class="eq">${n(exato, 12)} ⟶ <b>${res}</b></div>${aroundNote(decR, x)}`));
       return finalizarOp(passos, x, res, exato, q, null, op, Math.max(q, 0));
@@ -316,7 +316,7 @@
   function unTex(u) {
     u = limparUn(u);
     if (!u) return "";
-    let t = u.replace(/[²³]/g, (c) => "^{" + (c === "²" ? "2" : "3") + "}").replace(/\^(-?\d+)/g, "^{$1}").replace(/[·⋅]/g, "\\,").replace(/[µμ]/g, "\\mu{}").replace(/Ω/g, "\\Omega{}").replace(/°/g, "^{\\circ}").replace(/\s+/g, "\\,");
+    const t = u.replace(/[²³]/g, (c) => "^{" + (c === "²" ? "2" : "3") + "}").replace(/\^(-?\d+)/g, "^{$1}").replace(/[·⋅]/g, "\\,").replace(/[µμ]/g, "\\mu{}").replace(/Ω/g, "\\Omega{}").replace(/°/g, "^{\\circ}").replace(/\s+/g, "\\,");
     return `\\mathrm{${t}}`;
   }
   // σ com 1 a.s. (2 se começar por 1); valor com a mesma casa decimal
@@ -350,10 +350,9 @@
       out.usaSci = true;
       out.texto = out.sciTexto; out.html = out.sciHTML; out.latex = out.sciLatex;
     } else {
-      out.texto = vr === 0 && false ? "" : `${vStr} ± ${sStr}`;
+      out.texto = `${vStr} ± ${sStr}`;
       out.html = out.texto;
       out.latex = `${vStr.replace(",", "{,}")} \\pm ${sStr.replace(",", "{,}")}`;
-      if (Math.abs(vr) < 1e-3 && vr !== 0) { /* sem mantissa possível */ }
     }
     return out;
   }
@@ -532,9 +531,9 @@
     }
     // 6. parâmetros originais
     const par = { a: o.a, sa: o.sa, b: o.b, sb: o.sb };
-    const nomesPar = [];
+    const _nomesPar = [];
     const unx = opc.ux || "", uny = opc.uy || "";
-    const reg = { modo, T, ...o };
+    const _reg = { modo, T, ...o };
     if (modo === "exp") {
       par.k = o.a; par.sk = o.sa; par.A = Math.exp(o.b); par.sA = par.A * o.sb;
       const h = `<p>Voltando à relação original <b>y = A·e<sup>k·x</sup></b>:</p>${eq(`k = a = <b>${sigs(par.k)}</b> ± ${sigs(par.sk)}`)}${eq(`A = e<sup>b</sup> = e<sup>${sigs(o.b)}</sup> = <b>${sigs(par.A)}</b>`)}${eq(`σ${sub("A")} ≈ A·σ${sub("b")} = ${sigs(par.sA)}`)}${dica("Como ln A = b, a incerteza relativa de A é igual a σ<sub>b</sub> (propagação de uma exponencial).")}`;
@@ -616,8 +615,8 @@
     let ant = null, melhor = NaN;
     let h = base;
     for (let k = 0; k < 14; k++) {
-      let d1 = (f(x + h) - f(x - h)) / (2 * h);
-      let d2 = (f(x + h / 2) - f(x - h / 2)) / h;
+      const d1 = (f(x + h) - f(x - h)) / (2 * h);
+      const d2 = (f(x + h / 2) - f(x - h / 2)) / h;
       let d = (4 * d2 - d1) / 3; // Richardson
       if (!isFinite(d)) {
         // domínio restrito: tenta diferença unilateral
@@ -704,12 +703,13 @@
   // ---------------------------------------------------------------------------
   // Estatística de medidas
   // ---------------------------------------------------------------------------
-  const T_NU = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30];
+  const _T_NU = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30];
   const T_TAB = {
     0.9: [6.314, 2.920, 2.353, 2.132, 2.015, 1.943, 1.895, 1.860, 1.833, 1.812, 1.796, 1.782, 1.771, 1.761, 1.753, 1.746, 1.740, 1.734, 1.729, 1.725, 1.721, 1.717, 1.714, 1.711, 1.708, 1.706, 1.703, 1.701, 1.699, 1.697],
     0.95: [12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086, 2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048, 2.045, 2.042],
     0.99: [63.657, 9.925, 5.841, 4.604, 4.032, 3.707, 3.499, 3.355, 3.250, 3.169, 3.106, 3.055, 3.012, 2.977, 2.947, 2.921, 2.898, 2.878, 2.861, 2.845, 2.831, 2.819, 2.807, 2.797, 2.787, 2.779, 2.771, 2.763, 2.756, 2.750],
   };
+  // biome-ignore lint/suspicious/noApproximativeNumericConstant: valores tabelados de t de Student, não constantes matemáticas
   const T_GRANDE = { 0.9: { 40: 1.684, 60: 1.671, 120: 1.658, inf: 1.645 }, 0.95: { 40: 2.021, 60: 2.000, 120: 1.980, inf: 1.960 }, 0.99: { 40: 2.704, 60: 2.660, 120: 2.617, inf: 2.576 } };
   function tStudent(nu, conf = 0.95) {
     const c = [0.9, 0.95, 0.99].find((k) => Math.abs(k - conf) < 1e-9);
@@ -1008,7 +1008,7 @@
   }
   function exArredondar() {
     const nd = inteiro(5, 8);
-    let d = String(inteiro(1, 9)) + Array.from({ length: nd - 1 }, () => inteiro(0, 9)).join("");
+    const d = String(inteiro(1, 9)) + Array.from({ length: nd - 1 }, () => inteiro(0, 9)).join("");
     const pos = inteiro(0, 3);
     let txt;
     if (Math.random() < 0.4) txt = "0," + "0".repeat(inteiro(1, 3)) + d;

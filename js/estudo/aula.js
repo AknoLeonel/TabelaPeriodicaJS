@@ -26,6 +26,7 @@
   if (!LAB || !LAB.estudo) return;
   const { el, ui } = LAB;
   const E = LAB.estudo;
+  const MV = window.Movimento || { revelar: () => Promise.resolve(), barra: null };
 
   const IC = {
     alvo: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>',
@@ -72,6 +73,25 @@
       topo.appendChild(rq);
     }
     raiz.appendChild(topo);
+
+    // progresso de leitura: quanto da aula já passou pela tela
+    if (MV.barra) {
+      const leitura = MV.barra("aula-leitura");
+      leitura.el.setAttribute("aria-label", "Progresso de leitura da aula");
+      raiz.prepend(leitura.el);
+      const rolador = raiz.closest(".mod") || document.scrollingElement;
+      let quadro = 0;
+      const medir = () => {
+        quadro = 0;
+        if (!raiz.isConnected) { rolador.removeEventListener("scroll", aoRolar); return; }
+        const r = raiz.getBoundingClientRect(), vh = rolador.clientHeight || innerHeight;
+        const total = r.height - vh * 0.6;
+        leitura.definir(total > 0 ? (vh * 0.4 - r.top) / total : 1);
+      };
+      const aoRolar = () => { if (!quadro) quadro = requestAnimationFrame(medir); };
+      rolador.addEventListener("scroll", aoRolar, { passive: true });
+      requestAnimationFrame(medir);
+    }
 
     // ---------- índice ----------
     const partes = [];
@@ -144,8 +164,8 @@
         let vis = 0;
         const linha = el("div", "linha-bt");
         const prox = ui.botao(`Mostrar o passo 1 de ${x.passos.length}`, () => {
-          if (vis < lis.length) { lis[vis].classList.remove("oculto"); vis++; }
-          if (vis >= lis.length) { resp.classList.remove("oculto"); prox.remove(); tudo.remove(); }
+          if (vis < lis.length) { lis[vis].classList.remove("oculto"); MV.revelar(lis[vis]); vis++; }
+          if (vis >= lis.length) { resp.classList.remove("oculto"); MV.revelar(resp); prox.remove(); tudo.remove(); }
           else prox.textContent = `Mostrar o passo ${vis + 1} de ${x.passos.length}`;
         });
         const tudo = ui.botao("Ver tudo", () => { lis.forEach((l) => l.classList.remove("oculto")); resp.classList.remove("oculto"); vis = lis.length; prox.remove(); tudo.remove(); }, "sec");
@@ -193,6 +213,7 @@
             ops.querySelectorAll(".ex-op").forEach((x, j) => { x.disabled = true; x.classList.toggle("certa", j === t.certa); x.classList.toggle("errada", j === k && k !== t.certa); });
             const ok = k === t.certa;
             exp.hidden = false;
+            MV.revelar(exp);
             exp.className = "aula-exp " + (ok ? "ok" : "nao");
             exp.innerHTML = `<b>${ok ? "Isso!" : "Não é essa."}</b> ${t.explica || ""}`;
             respondidas++; if (ok) acertos++;
@@ -200,6 +221,7 @@
             if (respondidas === A.teste.length) {
               const frac = acertos / A.teste.length;
               E.progresso.registrarTeste(ctx.chave, frac);
+              if (window.Obs) window.Obs.evento("estudo.aula_teste", { aula: ctx.chave, acertos, perguntas: A.teste.length, concluida: frac >= 0.75 });
               fim.hidden = false;
               fim.className = "aula-fim " + (frac >= 0.75 ? "ok" : "");
               fim.innerHTML = frac >= 0.75

@@ -46,7 +46,7 @@
   const copiarBt = (rotulo, texto) => {
     const b = ui.botao(rotulo, async () => {
       try { await navigator.clipboard.writeText(typeof texto === "function" ? texto() : texto); const t0 = b.textContent; b.textContent = "Copiado ✓"; setTimeout(() => (b.textContent = t0), 1500); }
-      catch (e) { b.textContent = "Não consegui copiar"; }
+      catch (_e) { b.textContent = "Não consegui copiar"; }
     }, "sec mini");
     return b;
   };
@@ -170,7 +170,7 @@
       const campos = {};
       function reconstruir(preset) {
         let nomes = [];
-        try { nomes = X.variaveis(X.ler(f.texto())); } catch (e) { nomes = []; }
+        try { nomes = X.variaveis(X.ler(f.texto())); } catch (_e) { nomes = []; }
         vars.innerHTML = "";
         for (const nm of nomes) {
           if (!campos[nm]) {

@@ -54,7 +54,7 @@
     dilat: { v: [0, 0, 0, 0, -1], si: "1/K", u: { "1/K": 1, "1/°C": 1 } },
     angulo: { v: [0, 0, 0, 0, 0], si: "rad", u: { "°": PI / 180, rad: 1 } },
   };
-  const temOffset = (x) => x; // (temperatura absoluta é tratada só no conversor)
+  const _temOffset = (x) => x; // (temperatura absoluta é tratada só no conversor)
 
   // grandezas: sim = símbolo em HTML, faixa = [mín, máx, casas] usada nos exercícios
   const VARS = {};
@@ -483,7 +483,7 @@
     let valorSI = alvo in dado ? dado[alvo] : null;
     const ult = plano[plano.length - 1];
     valorSI = ult ? ult.res.v : dado[alvo];
-    let uOut = uSaida && U[dimA].u[uSaida] != null ? uSaida : (VARS[alvo].pref || U[dimA].si);
+    const uOut = uSaida && U[dimA].u[uSaida] != null ? uSaida : (VARS[alvo].pref || U[dimA].si);
     const valorOut = deSI(dimA, valorSI, uOut);
     if (uOut !== U[dimA].si) passos.push(R("Converta para a unidade pedida", `<p>${VARS[alvo].sim} = ${n(valorSI)} ${U[dimA].si} = ${n(valorSI)} ÷ ${n(fator(dimA, uOut))} = <b>${n(valorOut)}</b> ${uOut}</p>`));
     // conferência dimensional
@@ -666,7 +666,7 @@
       if (e.id === "snell" || e.id === "lorentz" || e.id === "wcos" && alvo === "th") continue;
       if (VARS[alvo].dim === "angulo") continue;
       const dados = {}, shown = [];
-      let fail = false;
+      const _fail = false;
       for (const v of e.vars) {
         if (v === alvo) continue;
         let val = VARS[v].padrao ? config.g : aleat(VARS[v].faixa);

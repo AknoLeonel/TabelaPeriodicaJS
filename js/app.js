@@ -142,7 +142,7 @@
   }
 
   function atualizarPreview(el) {
-    if (!el || preview.dataset.n == el.n) return;
+    if (!el || preview.dataset.n === String(el.n)) return;
     preview.dataset.n = el.n;
     const cor = corDe(el);
     preview.style.setProperty("--c", cor);
@@ -1325,10 +1325,25 @@
   // ---------------------------------------------------------------------------
   const guia = $("#guia");
   const guiaChave = "elementar.guia.visto";
-  function guiaAbrir() { guia.classList.add("on"); guia.setAttribute("aria-hidden", "false"); $("#guia-x").focus({ preventScroll: true }); }
+  const MV = window.Movimento;
+  function guiaAbrir() {
+    guia.getAnimations().forEach((a) => a.cancel());
+    guia.classList.add("on"); guia.setAttribute("aria-hidden", "false");
+    if (MV) MV.entrar(guia.querySelector(".guia-caixa"), { y: 12, dur: 320 });
+    $("#guia-x").focus({ preventScroll: true });
+  }
   function guiaFechar() {
-    guia.classList.remove("on"); guia.setAttribute("aria-hidden", "true");
-    try { localStorage.setItem(guiaChave, "1"); } catch (e) { /* sem armazenamento */ }
+    guia.setAttribute("aria-hidden", "true");
+    // saída mais curta e sutil que a entrada
+    if (MV && !MV.reduz()) {
+      MV.sair(guia.querySelector(".guia-caixa"), { y: 6, dur: 160 });
+      guia.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: MV.EASE.sai }).finished.then(() => {
+        if (guia.getAttribute("aria-hidden") === "true") guia.classList.remove("on");
+        guia.getAnimations().forEach((a) => a.cancel());
+        guia.querySelector(".guia-caixa").getAnimations().forEach((a) => a.cancel());
+      }).catch(() => {});
+    } else guia.classList.remove("on");
+    try { localStorage.setItem(guiaChave, "1"); } catch (_e) { /* sem armazenamento */ }
   }
   $("#guia-open").addEventListener("click", guiaAbrir);
   $("#guia-x").addEventListener("click", guiaFechar);
@@ -1343,7 +1358,7 @@
     if (e.key === "Escape" && guia.classList.contains("on")) { guiaFechar(); e.stopPropagation(); }
     else if (e.key === "?" && !/input|textarea|select/i.test(e.target.tagName)) { guia.classList.contains("on") ? guiaFechar() : guiaAbrir(); }
   }, true);
-  try { if (!location.hash && !localStorage.getItem(guiaChave)) setTimeout(guiaAbrir, 900); } catch (e) { /* ignora */ }
+  try { if (!location.hash && !localStorage.getItem(guiaChave)) setTimeout(guiaAbrir, 900); } catch (_e) { /* ignora */ }
 
   // ---------------------------------------------------------------------------
   // Início
@@ -1390,6 +1405,7 @@
       const r = origem.getBoundingClientRect();
       await window.LAB.abrir(id, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
     } catch (e) {
+      if (window.Obs) window.Obs.erro(e, { acao: "abrir laboratório", destino: id });
       avisar("Não consegui abrir o laboratório. Verifique a conexão.");
     } finally {
       labBotao.classList.remove("carregando");

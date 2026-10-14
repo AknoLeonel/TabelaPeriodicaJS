@@ -6,7 +6,7 @@
   "use strict";
   const LAB = window.LAB;
   const F = window.LabFisica;
-  const { el, ui, clamp, lerp, rnd } = LAB;
+  const { el, ui, clamp, rnd } = LAB;
 
   const COR_P = "#e5646e", COR_N = "#8aa0c0", COR_E = "#4aa3e0";
   const ESTADO_COR = { estavel: [255, 255, 255], "b-": [77, 163, 255], "b+": [255, 90, 122], a: [255, 210, 63], n: [150, 140, 175], p: [150, 140, 175] };
@@ -94,11 +94,11 @@
     const nuc = []; // { t: 1 próton | 0 nêutron, x, y, z, tx, ty, tz, ph, esc, oculto }
     const fx = []; // partículas de efeito
     let arrasto = null;
-    let yaw = 0, flash = 0, abalo = 0, fase = 0;
-    let telaNuc = []; // posições na tela (para pegar com o dedo)
-    let telaEle = [];
+    let yaw = 0, flash = 0, abalo = 0, _fase = 0;
+    const telaNuc = []; // posições na tela (para pegar com o dedo)
+    const telaEle = [];
     let cam = camadas(S.Z, S.E);
-    let layout = { cx: 0, cy: 0, Rv: 100, rN: 8, Rnuc: 20 };
+    const layout = { cx: 0, cy: 0, Rv: 100, rN: 8, Rnuc: 20 };
 
     const cena = new LAB.Cena(canvas, { dprMax: 2 });
 
@@ -536,7 +536,7 @@
       // 1. um nêutron lento chega
       const ang = Math.random() * 6.283;
       const nx = Math.cos(ang), ny = Math.sin(ang);
-      const e = emitir({ x: cx + nx * Rv * 1.1, y: cy + ny * Rv * 1.1, vx: -nx * Rv * 1.5, vy: -ny * Rv * 1.5, vida: 0.75, cor: COR_N, r: 10, tipo: "g" });
+      const _e = emitir({ x: cx + nx * Rv * 1.1, y: cy + ny * Rv * 1.1, vx: -nx * Rv * 1.5, vy: -ny * Rv * 1.5, vida: 0.75, cor: COR_N, r: 10, tipo: "g" });
       LAB.som.tom(300, 0.7, 0.05, "sine", 520);
       await esperar(750);
       const plano = planoFissao(S.Z, S.N);
@@ -632,15 +632,15 @@
       recalcularAlvos();
     };
 
-    let tPulso = 0;
+    let _tPulso = 0;
     cena.atualizar = (dt, t) => {
-      fase += dt;
+      _fase += dt;
       yaw += dt * 0.32;
       const tilt = 0.42 + Math.sin(t * 0.25) * 0.1;
       cY = Math.cos(yaw); sY = Math.sin(yaw); cX = Math.cos(tilt); sX = Math.sin(tilt);
       flash = Math.max(0, flash - dt * 2.4);
       abalo = Math.max(0, abalo - dt * 2.2);
-      tPulso += dt;
+      _tPulso += dt;
       const k = Math.min(1, dt * 9);
       for (const p of nuc) {
         let tx = p.tx, ty = p.ty, tz = p.tz;
