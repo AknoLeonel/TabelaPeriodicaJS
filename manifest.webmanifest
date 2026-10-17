@@ -1,0 +1,20 @@
+{
+  "name": "Elementar — tabela periódica, laboratório e estudo",
+  "short_name": "Elementar",
+  "description": "Aulas, exercícios infinitos com resolução passo a passo e simulados de Química, Física, Matemática e Biologia.",
+  "lang": "pt-BR",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1318",
+  "theme_color": "#0f1318",
+  "icons": [
+    { "src": "icons/icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icone-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icone-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Estudo", "url": "./index.html#estudo", "icons": [{ "src": "icons/icone-192.png", "sizes": "192x192" }] },
+    { "name": "Laboratório", "url": "./index.html#lab", "icons": [{ "src": "icons/icone-192.png", "sizes": "192x192" }] }
+  ]
+}

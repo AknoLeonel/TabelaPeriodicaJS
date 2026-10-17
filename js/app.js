@@ -1417,6 +1417,33 @@
   $("#hub-estudo").addEventListener("click", (e) => abrirLab("estudo", e.currentTarget));
   window.abrirLab = abrirLab;
 
+  // Uso sem internet (sw.js). Só em https ou localhost.
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+    addEventListener("load", () => {
+      const primeira = !navigator.serviceWorker.controller;
+      navigator.serviceWorker.register("./sw.js").then(() => {
+        if (window.Obs) window.Obs.evento("pwa.registrado", { primeira });
+      }).catch((e) => { if (window.Obs) window.Obs.erro(e, { acao: "registrar service worker" }); });
+    });
+  }
+
+  // Faixa "Estude para a prova": aparece até a pessoa escolher um dos caminhos
+  const faixa = $("#faixa");
+  const faixaChave = "elementar.faixa.vista";
+  let faixaVista = false;
+  try { faixaVista = !!localStorage.getItem(faixaChave); } catch (_e) { /* sem armazenamento */ }
+  if (faixa && !faixaVista) {
+    faixa.hidden = false;
+    if (window.Movimento) window.Movimento.entrar(faixa, { y: -6, atraso: 200 });
+    const fechar = async () => {
+      try { localStorage.setItem(faixaChave, "1"); } catch (_e) { /* ignora */ }
+      if (window.Movimento) await window.Movimento.sair(faixa);
+      faixa.hidden = true;
+    };
+    $("#faixa-ir").addEventListener("click", (e) => { if (window.Obs) window.Obs.evento("faixa.estudar"); fechar(); abrirLab("estudo", e.currentTarget); });
+    $("#faixa-tab").addEventListener("click", () => { if (window.Obs) window.Obs.evento("faixa.tabela"); fechar(); });
+  }
+
   // Abrir direto um elemento pelo endereço (ex.: index.html#Fe) ou o laboratório (#lab/atomo)
   const hash = decodeURIComponent(location.hash.slice(1));
   if (/^lab/i.test(hash)) {

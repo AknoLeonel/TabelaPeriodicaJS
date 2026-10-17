@@ -10,8 +10,8 @@
  * navegação, exercícios e simulados (sem nenhum dado pessoal).
  *
  * Exportadores (só os configurados em js/config.js são ligados):
- *   - OTLP/HTTP JSON → qualquer coletor OpenTelemetry (e, por ele, Datadog, New Relic, Grafana...);
- *   - Sentry, Datadog RUM e New Relic Browser, carregando o SDK de cada um sob demanda.
+ *   - OTLP/HTTP JSON → qualquer coletor OpenTelemetry (e, por ele, Grafana, Honeycomb, Datadog...);
+ *   - Sentry (erros), carregando o SDK sob demanda.
  * Sem configuração, nada sai do navegador. Com ?obs=debug na URL, tudo aparece no console.
  */
 (function (raiz) {
@@ -123,43 +123,6 @@
 			erro: (e) => comS(() => S.captureException(e.original || new Error(e.mensagem), { extra: e.atributos })),
 			evento: (e) => comS(() => S.addBreadcrumb({ category: "app", message: e.nome, data: e.atributos })),
 			span: (s) => comS(() => S.addBreadcrumb({ category: "span", message: `${s.nome} (${s.duracaoMs} ms)`, data: s.atributos, level: s.erro ? "error" : "info" })),
-		});
-	}
-
-	// Datadog RUM
-	if (ativo && CFG.datadog && CFG.datadog.clientToken && CFG.datadog.applicationId) {
-		const site = CFG.datadog.site || "datadoghq.com";
-		const regiao = { "datadoghq.com": "us1", "us3.datadoghq.com": "us3", "us5.datadoghq.com": "us5", "datadoghq.eu": "eu1", "ap1.datadoghq.com": "ap1" }[site] || "us1";
-		const pendentes = [];
-		let D = null;
-		carregarScript(CFG.datadog.sdk || `https://www.datadoghq-browser-agent.com/${regiao}/v7/datadog-rum.js`, () => {
-			D = raiz.DD_RUM;
-			if (!D) return;
-			D.init({ clientToken: CFG.datadog.clientToken, applicationId: CFG.datadog.applicationId, site, service: RECURSO["service.name"], env: RECURSO["deployment.environment"], version: RECURSO["service.version"], sessionSampleRate: 100, trackUserInteractions: false, defaultPrivacyLevel: "mask" });
-			pendentes.splice(0).forEach((f) => f());
-		});
-		const comD = (f) => (D ? f() : pendentes.push(f));
-		registrar({
-			erro: (e) => comD(() => D.addError(e.original || new Error(e.mensagem), e.atributos)),
-			evento: (e) => comD(() => D.addAction(e.nome, e.atributos)),
-			span: (s) => comD(() => D.addAction(s.nome, { ...s.atributos, duracao_ms: s.duracaoMs, erro: s.erro || undefined })),
-		});
-	}
-
-	// New Relic Browser
-	if (ativo && CFG.newrelic && CFG.newrelic.licenseKey && CFG.newrelic.applicationID) {
-		const nr = CFG.newrelic;
-		raiz.NREUM = raiz.NREUM || {};
-		raiz.NREUM.init = { distributed_tracing: { enabled: true }, privacy: { cookies_enabled: false }, ajax: { deny_list: ["bam.nr-data.net"] } };
-		raiz.NREUM.loader_config = { accountID: nr.accountID, trustKey: nr.trustKey, agentID: nr.agentID, licenseKey: nr.licenseKey, applicationID: nr.applicationID };
-		raiz.NREUM.info = { beacon: "bam.nr-data.net", errorBeacon: "bam.nr-data.net", licenseKey: nr.licenseKey, applicationID: nr.applicationID, sa: 1 };
-		carregarScript(nr.sdk || "https://js-agent.newrelic.com/nr-loader-spa-1.324.0.min.js");
-		const comN = (f) => raiz.newrelic && f(raiz.newrelic);
-		registrar({
-			erro: (e) => comN((n) => n.noticeError(e.original || new Error(e.mensagem), e.atributos)),
-			evento: (e) => comN((n) => n.addPageAction(e.nome, e.atributos)),
-			span: (s) => comN((n) => n.addPageAction(s.nome, { ...s.atributos, duracao_ms: s.duracaoMs })),
-			metrica: (m) => comN((n) => n.addPageAction(`metrica.${m.nome}`, { ...m.atributos, valor: m.valor, unidade: m.unidade })),
 		});
 	}
 

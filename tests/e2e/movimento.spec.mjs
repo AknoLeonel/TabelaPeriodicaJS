@@ -32,9 +32,17 @@ test.describe("movimento reduzido", () => {
 });
 
 test("carregamento de matéria mostra esqueleto e progresso antes do conteúdo", async ({ page }) => {
-	// atrasa os scripts da matéria para o esqueleto ficar visível
+	// sem pré-carregamento em segundo plano (ele baixaria a matéria antes do toque),
+	// e os scripts da matéria ficam segurados até o esqueleto ser conferido
+	await page.addInitScript(() => {
+		window.requestIdleCallback = () => 0;
+	});
+	let soltar;
+	const liberado = new Promise((z) => {
+		soltar = z;
+	});
 	await page.route(/js\/estudo\/(biologia|aulas\/biologia).*\.js$/, async (r) => {
-		await new Promise((z) => setTimeout(z, 800));
+		await liberado;
 		await r.continue();
 	});
 	await abrir(page, "estudo/quimica");
@@ -42,6 +50,7 @@ test("carregamento de matéria mostra esqueleto e progresso antes do conteúdo",
 	await page.locator('#lab-nav button[data-id="biologia"]').click();
 	await expect(page.locator(".mod-esq [role=status]")).toBeVisible();
 	await expect(page.locator(".mod-esq [role=progressbar]")).toBeVisible();
+	soltar();
 	await expect(page.locator(".mod.on .est-lista")).toBeAttached({ timeout: 20_000 });
 	await expect(page.locator(".mod-esq")).toHaveCount(0);
 });

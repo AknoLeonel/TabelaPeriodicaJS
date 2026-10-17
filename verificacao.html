@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f1318">
+  <meta name="color-scheme" content="dark">
+  <title>Como verificamos · Elementar</title>
+  <meta name="description" content="Como o Elementar confere as contas, as aulas e os exercícios, e como reportar um erro.">
+  <link rel="icon" href="icons/icone-192.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <style>
+    :root { --bg: #0f1318; --panel: #161b22; --line: #2b3441; --text: #e8edf3; --muted: #9ba7b6; --brand: #f2c14e; --ok: #4cc38a; --warn: #f2c14e; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+    a { color: var(--brand); }
+    h1 { font-size: 30px; line-height: 1.2; margin: 8px 0 12px; }
+    h2 { font-size: 20px; margin: 36px 0 8px; }
+    .kicker { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--brand); }
+    .lead { color: var(--muted); font-size: 17px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin: 12px 0; }
+    .card b { color: var(--text); }
+    ul, ol { padding-left: 20px; }
+    li { margin: 4px 0; }
+    .estado { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--line); }
+    .estado.ok { color: var(--ok); border-color: var(--ok); }
+    .estado.esp { color: var(--warn); border-color: var(--warn); }
+    .voltar { display: inline-flex; align-items: center; min-height: 44px; }
+    code { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .92em; }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="voltar" href="./index.html#estudo">← Voltar ao estudo</a>
+    <p class="kicker">Elementar</p>
+    <h1>Como verificamos o conteúdo</h1>
+    <p class="lead">Um site de estudo só serve se você puder confiar nele. Aqui está, sem enfeite, o que já é conferido, o que ainda não é e como você pode ajudar.</p>
+
+    <h2>1. As contas são testadas automaticamente</h2>
+    <div class="card">
+      <p>Toda ferramenta que resolve um problema (massa molar, pH, cinemática, funções, genética, incertezas…) usa um <b>motor de cálculo</b> separado da tela. Cada motor tem testes com <b>valores de livro</b>, conferidos à mão: se alguém mudar o código e uma conta sair diferente, a mudança é barrada antes de ir ao ar.</p>
+      <p>Hoje são mais de 360 testes automáticos rodando a cada alteração, mais testes que abrem o site em celular e computador e usam cada ferramenta.</p>
+    </div>
+
+    <h2>2. Cada exercício confere a própria resposta</h2>
+    <div class="card">
+      <p>Os exercícios são gerados na hora, com números novos. Para cada tipo, geramos <b>centenas de exercícios</b> nos testes e conferimos que o enunciado está completo, que existe resolução passo a passo e que a resposta do próprio motor é aceita na correção. Nenhum texto pode sair com "undefined" ou "NaN".</p>
+    </div>
+
+    <h2>3. As aulas seguem um roteiro e citam fontes</h2>
+    <div class="card">
+      <p>Toda aula tem objetivos, explicação, fórmulas com o significado de cada símbolo, exemplos resolvidos, erros comuns, aplicações, teste rápido com explicação, resumo e as <b>fontes</b> usadas (livros de referência como Atkins, Halliday, Campbell e os livros abertos da OpenStax). Um teste automático barra aulas incompletas.</p>
+      <p>O que os testes <b>não</b> conseguem garantir é que o texto esteja conceitualmente perfeito. Para isso existe a revisão humana.</p>
+    </div>
+
+    <h2>4. Revisão por professores</h2>
+    <div class="card">
+      <p>Cada aula mostra no topo a sua situação:</p>
+      <ul>
+        <li><span class="estado ok">Revisada por …</span> um professor da área leu a aula inteira, com o roteiro de revisão, e as correções pedidas foram feitas. O nome, a formação e a data aparecem na aula.</li>
+        <li><span class="estado esp">Aguardando revisão de professor</span> as contas são testadas, mas nenhum professor revisou o texto ainda.</li>
+      </ul>
+      <p>Não marcamos uma aula como revisada sem uma revisão real. É professor e quer ajudar? O roteiro está em <a href="https://github.com/AknoLeonel/TabelaPeriodicaJS/blob/master/docs/revisao-professor.md" target="_blank" rel="noopener">docs/revisao-professor.md</a>, e cada aula tem o botão <b>Imprimir para revisão</b>, com o gabarito do teste rápido.</p>
+    </div>
+
+    <h2>5. Achou um erro? Avise</h2>
+    <div class="card">
+      <p>Em toda aula, exercício e questão de simulado há o botão <b>Achei um erro</b>. Ele abre um relato pré-preenchido no nosso repositório público no GitHub, com o local e o enunciado. Todo relato é analisado; quando o erro se confirma, a correção vem com um teste novo para ele não voltar.</p>
+      <p>Também dá para ver e acompanhar tudo em <a href="https://github.com/AknoLeonel/TabelaPeriodicaJS/issues" target="_blank" rel="noopener">github.com/AknoLeonel/TabelaPeriodicaJS/issues</a>.</p>
+    </div>
+
+    <h2>6. Seus dados</h2>
+    <div class="card">
+      <p>O site não pede cadastro. Seu progresso fica <b>só no seu aparelho</b>; para levá-lo a outro, use "Levar para outro aparelho" em Provas. Quando há medição de uso, ela é anônima, sem nome, e-mail nem o que você digita, e respeita a opção "não rastrear" do navegador.</p>
+    </div>
+  </main>
+</body>
+</html>

@@ -2,9 +2,7 @@
  * Configuração de observabilidade (js/obs.js). Tudo desligado por padrão:
  * sem chaves aqui, nenhum dado sai do navegador.
  *
- * As chaves de navegador do Sentry (DSN), do Datadog RUM (clientToken) e do
- * New Relic Browser (licenseKey) são públicas por natureza: ficam no código do
- * site de qualquer jeito. Nunca coloque aqui tokens de API ou chaves secretas.
+ * O DSN do Sentry é público por natureza: fica no código do site de qualquer jeito. Nunca coloque aqui tokens de API ou chaves secretas.
  *
  * Para ativar um serviço, preencha o bloco dele e faça deploy. Detalhes no
  * README, seção "Observabilidade".
@@ -23,10 +21,4 @@ window.ELEMENTAR_CONFIG = window.ELEMENTAR_CONFIG || {
 
 	// Sentry: https://docs.sentry.io/platforms/javascript/
 	sentry: { dsn: "", amostragemTraces: 0.2 },
-
-	// Datadog RUM: https://docs.datadoghq.com/real_user_monitoring/browser/
-	datadog: { clientToken: "", applicationId: "", site: "datadoghq.com" },
-
-	// New Relic Browser: https://docs.newrelic.com/docs/browser/
-	newrelic: { accountID: "", trustKey: "", agentID: "", licenseKey: "", applicationID: "" },
 };

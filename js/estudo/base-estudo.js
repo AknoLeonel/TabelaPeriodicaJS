@@ -136,6 +136,7 @@
     ouvir: (f) => { ouvintes.add(f); return () => ouvintes.delete(f); },
     todos: progTodos,
     zerar() { progCache = {}; progSalvar(); avisarProg(null); },
+    substituir(todos) { progCache = { ...todos }; progSalvar(); avisarProg(null); },
   };
 
   // ---------- uma questão (usada na prática e nos simulados) ----------
@@ -206,6 +207,7 @@
     }
     if (corrigir) bts.append(...(escolha ? [btVer] : [btConf, btVer]));
     raiz.append(card, caixa, opcoes, fb, bts, passosBox);
+    if (window.Reportar) raiz.appendChild(window.Reportar.botao({ onde: "exercício", ...(opc.reportar || {}), enunciado: ex.enunciado }));
     return {
       inp, bts,
       respondido: () => respondido,
@@ -243,6 +245,7 @@
       primeira = false;
       const q = questao(zona, ex, {
         motor,
+        reportar: { item: progChave || tipo },
         aoResponder(c) {
           pts.total++;
           if (c) { pts.ok++; pts.seq++; pts.melhor = Math.max(pts.melhor, pts.seq); } else pts.seq = 0;
