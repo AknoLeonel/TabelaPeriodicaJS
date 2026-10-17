@@ -49,7 +49,7 @@ npm run test:mutation  # Stryker (lento; roda semanalmente no CI)
 - Cobertura mínima dos motores: 70% das linhas (configurada no `vitest.config.mjs`). Código novo em motor vem com teste.
 - Mudou um motor? Acrescente testes com **valores de livro** em `tests/unit/` (e confira a conta à mão).
 - Novo tipo de exercício? Ele entra automaticamente no teste de integração, que gera exercícios e confere se a própria resposta é aceita.
-- Nova aula? O teste `tests/integration/aulas.test.mjs` exige o roteiro completo (veja a seção 5).
+- Nova aula? O teste `tests/integration/aulas.test.mjs` exige o roteiro completo (veja a seção 5), e cada exemplo resolvido com resultado numérico ganha uma linha em `tests/integration/exemplos-aulas.test.mjs`, refazendo a conta do zero ou pelo motor.
 - Mudou interface? Rode o e2e e olhe as telas em 390 px e 1366 px de largura: nada sobreposto, sem rolagem horizontal, sem erro no console.
 
 ## 4. Arquitetura (contratos verificados por teste)
