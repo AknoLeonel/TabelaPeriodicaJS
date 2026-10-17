@@ -830,3 +830,9 @@ button.pv-top:hover { background: var(--panel-2); }
 .rep-form textarea { resize: vertical; }
 .rep-nota { margin: 0; font-size: 12px; color: var(--muted); }
 .rep-ok { margin: 0; font-size: 14px; color: var(--text); }
+
+/* ---------- Levar o progresso para outro aparelho (provas.js) ---------- */
+.pv-tr .linha-bt { flex-wrap: wrap; }
+.pv-tr-cod { width: 100%; margin-top: 10px; font: 13px var(--f-mono, monospace); color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; resize: vertical; word-break: break-all; }
+.pv-tr > .bt { margin-top: 8px; }
+.pv-tr-msg { margin: 8px 0 0; font-size: 13px; color: var(--muted); min-height: 1.2em; }

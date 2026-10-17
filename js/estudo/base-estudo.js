@@ -136,6 +136,7 @@
     ouvir: (f) => { ouvintes.add(f); return () => ouvintes.delete(f); },
     todos: progTodos,
     zerar() { progCache = {}; progSalvar(); avisarProg(null); },
+    substituir(todos) { progCache = { ...todos }; progSalvar(); avisarProg(null); },
   };
 
   // ---------- uma questão (usada na prática e nos simulados) ----------

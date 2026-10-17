@@ -47,7 +47,7 @@
     CATALOGO.push({
       id: "provas", grupo: "estudo", nome: "Provas", resumo: "Simulados com correção, domínio por tópico e histórico.", cor: "#f2c14e",
       icone: '<svg viewBox="0 0 24 24"><path d="M9 4h6v3H9z"/><path d="M15 5h3v16H6V5h3"/><path d="M9 12l2 2 4-4"/><path d="M9 17h6"/></svg>',
-      js: [...new Set(est.flatMap((c) => c.js)), "js/estudo/provas.js"], css: [...new Set(est.flatMap((c) => c.css || []))],
+      js: [...new Set(est.flatMap((c) => c.js)), "js/estudo/transferir-calc.js", "js/estudo/provas.js"], css: [...new Set(est.flatMap((c) => c.css || []))],
     });
   }
 

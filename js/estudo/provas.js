@@ -33,6 +33,35 @@
     let sessao = null, relogio = 0;
     const topo = () => caixa.scrollTo({ top: 0 });
 
+    // Levar o progresso para outro aparelho (js/estudo/transferir-calc.js)
+    function secTransferir() {
+      const TR = window.Transferir;
+      const s = el("section", "pv-sec pv-tr");
+      s.innerHTML = `<h4 class="pv-h">Levar para outro aparelho</h4><p class="pv-sub">Seu progresso fica só neste aparelho. Para continuar em outro, copie o código aqui, mande para você mesmo (WhatsApp, e-mail) e cole lá em "Trazer de outro aparelho". Nada passa por servidor.</p>`;
+      const linha = el("div", "linha-bt");
+      const msg = el("p", "pv-tr-msg"); msg.setAttribute("aria-live", "polite");
+      linha.appendChild(ui.botao("Copiar meu código", async () => {
+        const codigo = TR.codificar({ progresso: P.todos(), historico: E.ler(HIST, []) });
+        try { await navigator.clipboard.writeText(codigo); msg.textContent = "Código copiado. Cole no outro aparelho."; }
+        catch (_e) { area.value = codigo; area.hidden = false; area.select(); msg.textContent = "Copie o código abaixo (ele foi selecionado)."; }
+        if (window.Obs) window.Obs.evento("progresso.exportado", { topicos: Object.keys(P.todos()).length });
+      }));
+      linha.appendChild(ui.botao("Trazer de outro aparelho", () => { area.hidden = false; area.value = ""; area.focus(); btImp.hidden = false; msg.textContent = "Cole o código e toque em Importar."; }, "sec"));
+      const area = el("textarea", "pv-tr-cod"); area.rows = 3; area.hidden = true; area.setAttribute("aria-label", "Código do progresso"); area.spellcheck = false;
+      const btImp = ui.botao("Importar", () => {
+        const r = TR.decodificar(area.value);
+        if (!r.ok) { msg.textContent = r.erro; return; }
+        const m = TR.mesclar({ progresso: P.todos(), historico: E.ler(HIST, []) }, r);
+        P.substituir(m.progresso); E.guardar(HIST, m.historico);
+        if (window.Obs) window.Obs.evento("progresso.importado", { topicos: Object.keys(r.progresso).length, simulados: r.historico.length });
+        painel();
+        requestAnimationFrame(() => { const x = raiz.querySelector(".pv-tr-msg"); if (x) x.textContent = `Pronto: ${Object.keys(r.progresso).length} tópico(s) e ${r.historico.length} simulado(s) somados ao que já havia aqui.`; });
+      });
+      btImp.hidden = true;
+      s.append(linha, area, btImp, msg);
+      return s;
+    }
+
     // =====================================================================
     // Painel
     // =====================================================================
@@ -112,6 +141,8 @@
         s3.appendChild(tab);
       }
       raiz.appendChild(s3);
+
+      if (window.Transferir) raiz.appendChild(secTransferir());
 
       const zera = el("button", "pv-zerar", "Apagar meu progresso e histórico");
       zera.type = "button";
