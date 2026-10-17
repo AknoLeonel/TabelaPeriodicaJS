@@ -14,6 +14,8 @@ export default defineConfig({
 		baseURL: `http://127.0.0.1:${PORTA}`,
 		trace: "retain-on-failure",
 		screenshot: "only-on-failure",
+		// o service worker (sw.js) atenderia as requisições antes do page.route; só o teste de PWA o liga
+		serviceWorkers: "block",
 	},
 	projects: [
 		{ name: "celular", use: { ...devices["Pixel 7"], browserName: "chromium" } },
