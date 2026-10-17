@@ -14,7 +14,7 @@
   const raiz = document.getElementById("lab");
   const OUT = "cubic-bezier(0.16, 1, 0.3, 1)";
 
-  const ESTUDO_BASE = ["js/estudo/quimica-calc.js", "js/estudo/base-estudo.js", "js/estudo/grafico.js", "js/estudo/aula.js"];
+  const ESTUDO_BASE = ["js/estudo/quimica-calc.js", "js/estudo/reportar.js", "js/estudo/base-estudo.js", "js/estudo/grafico.js", "js/estudo/aula.js"];
   const CATALOGO = [
     { id: "atomo", grupo: "lab", nome: "Átomo", resumo: "Monte, decaia e divida qualquer átomo", cor: "#38b6ff", icone: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><ellipse cx="12" cy="12" rx="10" ry="4"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-60 12 12)"/></svg>', js: ["js/lab/atomo.js"] },
     { id: "decaimento", grupo: "lab", nome: "Decaimento", resumo: "Meia-vida e contador Geiger", cor: "#2ee6b6", icone: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.2"/><path d="M12 3a9 9 0 0 1 7.8 4.5L15 10"/><path d="M20.8 15A9 9 0 0 1 12 21l.2-5.5"/><path d="M3.2 15A9 9 0 0 1 4.2 7.5L9 10"/></svg>', js: ["js/lab/decaimento.js"] },

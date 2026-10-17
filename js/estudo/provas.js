@@ -254,6 +254,7 @@
         atual = E.questao(zona, q.ex, {
           motor: q.t.motor,
           corrigirNaHora: sessao.modo === "treino",
+          reportar: { onde: "prova", materia: q.t.nomeMateria, item: q.t.nome },
           rotulo: `Questão ${k + 1} · ${q.t.nomeMateria} · ${q.t.nome}`,
           aoResponder(c, valor) {
             q.resp = valor;

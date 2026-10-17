@@ -818,3 +818,15 @@ button.pv-top:hover { background: var(--panel-2); }
 @keyframes gf-brilho { from { background-position: -50% 0; } to { background-position: 150% 0; } }
 @media (prefers-reduced-motion: reduce) { .gf.gf-esperando::after { display: none; } }
 #lab.carregando .selo { visibility: hidden; }
+
+/* ---------- "Achei um erro" (js/estudo/reportar.js) ---------- */
+.rep { margin-top: 10px; }
+.rep-bt { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 13px; cursor: pointer; touch-action: manipulation; }
+.rep-bt:hover, .rep-bt[aria-expanded="true"] { color: var(--text); background: var(--panel-2); }
+.rep-bt svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.rep-form { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); max-width: 520px; }
+.rep-form label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+.rep-form select, .rep-form textarea { font: inherit; font-size: 14px; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; min-height: 40px; }
+.rep-form textarea { resize: vertical; }
+.rep-nota { margin: 0; font-size: 12px; color: var(--muted); }
+.rep-ok { margin: 0; font-size: 14px; color: var(--text); }

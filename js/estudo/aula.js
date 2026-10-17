@@ -266,6 +266,7 @@
     }
     const rod = el("div", "aula-rod");
     rod.appendChild(acoes());
+    if (window.Reportar) rod.appendChild(window.Reportar.botao({ onde: "aula", materia: ctx.chave, item: ctx.nome }));
     const sobe = el("button", "aula-sobe", `${IC.subir}<span>Voltar ao início da aula</span>`);
     sobe.type = "button";
     sobe.addEventListener("click", () => topo.scrollIntoView({ behavior: "smooth", block: "start" }));
