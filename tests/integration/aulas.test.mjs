@@ -10,6 +10,8 @@ import { describe, expect, it } from "vitest";
 const DIR = join(import.meta.dirname, "../../js/estudo/aulas");
 const LAB = { estudo: { aulas: {} } };
 for (const f of readdirSync(DIR)) vm.runInNewContext(readFileSync(join(DIR, f), "utf8"), { window: { LAB } }, { filename: f });
+// fontes por matéria e revisões de professores (só dados)
+vm.runInNewContext(readFileSync(join(DIR, "../verificacao.js"), "utf8"), { window: { LAB } }, { filename: "verificacao.js" });
 const AULAS = Object.entries(LAB.estudo.aulas).flatMap(([materia, a]) => Object.entries(a).map(([id, aula]) => [`${materia}/${id}`, aula]));
 
 const texto = (h) => String(h).replace(/<[^>]+>/g, "");
@@ -44,6 +46,20 @@ describe("aulas", () => {
 		expect(a.alem && a.alem.h).toBeTruthy();
 		for (const s of a.secoes) expect(texto(s.h).length, `seção "${s.t}" curta`).toBeGreaterThanOrEqual(250);
 		for (const x of a.exemplos) expect(x.passos.length).toBeGreaterThanOrEqual(2);
+	});
+
+	it.each(AULAS)("%s cita pelo menos 2 fontes", (id, a) => {
+		const fontes = [...(a.fontes || []), ...((LAB.estudo.fontes || {})[id.split("/")[0]] || [])];
+		expect(fontes.length).toBeGreaterThanOrEqual(2);
+		for (const f of fontes) expect(typeof f === "string" && f.length > 20).toBe(true);
+	});
+
+	it("revisões registradas têm nome, formação e data válida", () => {
+		for (const [k, r] of Object.entries(LAB.estudo.revisoes || {})) {
+			expect(AULAS.some(([id]) => id === k), `revisão de aula inexistente: ${k}`).toBe(true);
+			expect(r.por && r.formacao).toBeTruthy();
+			expect(r.data).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+		}
 	});
 
 	it.each(AULAS)("%s tem teste rápido válido", (_id, a) => {

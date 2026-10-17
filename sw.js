@@ -27,6 +27,7 @@ const NUCLEO = [
 	"./js/lab/base.js",
 	"./js/lab/lab.js",
 	"./css/lab.css",
+	"./verificacao.html",
 ];
 const FONTES = /^https:\/\/fonts\.(googleapis|gstatic)\.com\//;
 

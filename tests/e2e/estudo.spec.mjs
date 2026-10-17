@@ -47,3 +47,36 @@ test("prática: responder certo soma acerto e libera o próximo exercício", asy
 	await expect(page.locator(".mod.on .ex-fb.certo")).toBeVisible();
 	await expect(page.locator(".mod.on .linha-bt button", { hasText: "Outro exercício" })).toBeVisible();
 });
+
+test("aula: mostra a situação da revisão, as fontes e a versão para impressão", async ({ page }) => {
+	const erros = await abrir(page, "estudo/quimica/massa");
+	await page.locator(".mod.on .est-etapas button").nth(0).click();
+	await expect(page.locator(".mod.on .aula-selo")).toContainText(/aguardando revisão de professor|Revisada por/);
+	await expect(page.locator('.mod.on .aula-selo a[href="verificacao.html"]')).toBeVisible();
+	const fontes = page.locator(".mod.on .aula-fontes");
+	await fontes.locator("summary").click();
+	expect(await fontes.locator("li").count()).toBeGreaterThanOrEqual(2);
+	// a versão para impressão abre tudo e traz o gabarito do teste rápido
+	await page.evaluate(() => {
+		window.print = () => {
+			const c = document.querySelector(".aula-impressa");
+			window.__impressa = c ? { gabaritos: c.querySelectorAll(".aula-exp b").length, ocultos: c.querySelectorAll(".oculto, [hidden]").length, perguntas: c.querySelectorAll(".aula-q").length } : null;
+		};
+	});
+	await page.locator(".mod.on .aula-imp").click();
+	const r = await page.evaluate(() => window.__impressa);
+	expect(r.perguntas).toBeGreaterThanOrEqual(4);
+	expect(r.gabaritos).toBe(r.perguntas);
+	expect(r.ocultos).toBe(0);
+	expect(erros).toEqual([]);
+});
+
+test("página 'Como verificamos' abre sem erros", async ({ page }) => {
+	const erros = [];
+	page.on("pageerror", (e) => erros.push(String(e)));
+	await page.goto("/verificacao.html");
+	await expect(page.locator("h1")).toHaveText("Como verificamos o conteúdo");
+	const largura = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+	expect(largura).toBeLessThanOrEqual(1);
+	expect(erros).toEqual([]);
+});

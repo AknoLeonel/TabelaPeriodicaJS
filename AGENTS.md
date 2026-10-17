@@ -28,6 +28,9 @@ Site **estático, sem build** (HTML, CSS e JavaScript puro), publicado na Vercel
 - `js/estudo/aulas/*.js` — **conteúdo** das aulas (só dados).
 - `js/movimento.js` — utilitários de animação; `js/obs.js` + `js/config.js` — observabilidade.
 - `tests/` — `unit/`, `integration/`, `arch/` (Vitest) e `e2e/` (Playwright).
+- `sw.js` + `manifest.webmanifest` — PWA (rede primeiro, cache como reserva). Mudou a lista do núcleo? Aumente `VERSAO` no `sw.js`.
+- `verificacao.html` — página pública "Como verificamos".
+- `docs/ROADMAP.md` — plano vivo (Issue #19); `docs/teste-usuarios.md` e `docs/revisao-professor.md` — roteiros para pessoas.
 
 ## 3. Qualidade: o que precisa passar
 
@@ -64,6 +67,9 @@ npm run test:mutation  # Stryker (lento; roda semanalmente no CI)
 - Público: ensino médio, faculdade e autodidatas. Português do Brasil, vírgula decimal, unidade separada por espaço, rigor científico total.
 - Cada aula segue o roteiro de `js/estudo/aula.js`: objetivos (3+), seções (3+, cada uma com 250+ caracteres), fórmulas com o significado de cada símbolo, exemplos resolvidos (2+, idealmente 3), erros comuns (3+), aplicações (3+), teste rápido (4+ perguntas de conceito, com a resposta certa variando de posição e explicação), resumo (4+) e "para ir além".
 - Nunca escreva `${` ou crase dentro do texto das aulas (são template strings).
+- **Fontes:** toda aula cita 2+ referências (as da matéria ficam em `js/estudo/verificacao.js`; a aula pode somar as suas em `fontes`).
+- **Revisão humana:** só registre `E.revisoes["materia/aula"]` em `verificacao.js` depois que um professor revisou de verdade (roteiro em `docs/revisao-professor.md`). Nunca invente revisor.
+- Erro reportado pelo botão "Achei um erro" vira Issue `[Correção]`; a correção vem com um teste que pegaria o erro de novo.
 
 ## 6. Motion (animação)
 

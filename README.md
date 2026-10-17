@@ -126,6 +126,12 @@ O DSN é uma chave pública de navegador (aparecem no site de qualquer jeito); n
 | `js/app.js` | Tabela, modos, ficha, modelo atômico, guia e carregamento sob demanda |
 | `js/movimento.js` | Animações comuns (entrar, sair, esqueleto, progresso, lazy) seguindo a skill design-motion-principles |
 | `js/obs.js`, `js/config.js` | Observabilidade (OpenTelemetry e Sentry) e sua configuração |
+| `sw.js`, `manifest.webmanifest`, `icons/` | Uso sem internet (PWA) |
+| `verificacao.html` | Página "Como verificamos" |
+| `js/estudo/reportar.js` | Botão "Achei um erro" (abre Issue pré-preenchida) |
+| `js/estudo/transferir-calc.js` | Código para levar o progresso a outro aparelho |
+| `js/estudo/verificacao.js` | Fontes por matéria e revisões de professores |
+| `docs/` | Roteiro 10/10, teste com estudantes e kit de revisão para professores |
 | `tests/` | Testes unitários, de integração e de arquitetura (Vitest) e end-to-end (Playwright) |
 | `js/dados.js` | Dados físicos dos elementos ([Periodic-Table-JSON](https://github.com/Bowserinator/Periodic-Table-JSON), CC BY-SA 3.0) |
 | `js/descricoes.js` | Textos em português de cada elemento |

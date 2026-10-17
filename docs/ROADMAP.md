@@ -14,11 +14,11 @@ Este é o plano vivo do Elementar. Ele nasceu da avaliação do "conselho" (5 co
 ## Itens
 | Issue | Item | Quem faz | Situação |
 |---|---|---|---|
-| #18 | Observabilidade só com OTel + Sentry; roteiro de teste com estudantes | agente | em andamento |
-| #13 | Botão "Achei um erro" (abre Issue pré-preenchida) | agente | em andamento |
-| #16 | Faixa "Estude para a prova" na página inicial + PWA offline | agente | em andamento |
-| #15 | Exportar/importar progresso por código | agente | em andamento |
-| #14 | Selo de revisão, fontes, página "Como verificamos", kit do professor | agente (parte técnica) + **dono** (professores) | em andamento |
+| #18 | Observabilidade só com OTel + Sentry; roteiro de teste com estudantes | agente | ✅ feito (o teste em si é do dono) |
+| #13 | Botão "Achei um erro" (abre Issue pré-preenchida) | agente | ✅ feito |
+| #16 | Faixa "Estude para a prova" na página inicial + PWA offline | agente | ✅ feito |
+| #15 | Exportar/importar progresso por código | agente | ✅ feito (sem QR: exigiria biblioteca) |
+| #14 | Selo de revisão, fontes, página "Como verificamos", kit do professor | agente (parte técnica) + **dono** (professores) | parte técnica ✅; falta: revisões reais e testes que conferem os exemplos das aulas pelo motor |
 | #17 | Login professor/aluno, provas individuais por semente, correção no servidor, painel, ENEM | agente, **bloqueado** pelas decisões do dono | aguardando |
 
 ## O que depende do dono do projeto (manual)

@@ -57,6 +57,13 @@
     const topo = el("header", "aula-topo");
     const meta = [A.tempo ? `≈ ${A.tempo} min` : "", A.nivel || "", prog.aula ? "concluída ✓" : ""].filter(Boolean);
     topo.innerHTML = `<p class="aula-meta">Aula${meta.length ? " · " + meta.join(" · ") : ""}</p>`;
+    // quem revisou (js/estudo/verificacao.js): mostra a situação real, sem esconder
+    const rev = (E.revisoes && E.revisoes[ctx.chave]) || A.revisao;
+    const selo = el("p", "aula-selo" + (rev ? " ok" : ""));
+    selo.innerHTML = rev
+      ? `${IC.check}<span>Revisada por <b>${rev.por}</b>${rev.formacao ? ` (${rev.formacao})` : ""}${rev.data ? ` em ${new Date(rev.data + "T12:00").toLocaleDateString("pt-BR")}` : ""}. <a href="verificacao.html" target="_blank" rel="noopener">Como verificamos</a></span>`
+      : `${IC.alerta}<span>Contas conferidas por testes automáticos; <b>aguardando revisão de professor</b>. Achou algo estranho? Use "Achei um erro" no fim da aula. <a href="verificacao.html" target="_blank" rel="noopener">Como verificamos</a></span>`;
+    topo.appendChild(selo);
     if (A.objetivos && A.objetivos.length) {
       const ob = el("div", "aula-obj");
       ob.innerHTML = `<b>Ao final desta aula você vai saber:</b><ul>${A.objetivos.map((o) => `<li>${o}</li>`).join("")}</ul>`;
@@ -264,9 +271,44 @@
       if (ctx.temPratica) l.appendChild(ui.botao("Praticar com exercícios", () => ctx.irEtapa("treino"), "sec"));
       return l;
     }
+    const fontes = [...(A.fontes || []), ...((E.fontes && E.fontes[ctx.chave.split("/")[0]]) || [])];
+    if (fontes.length) {
+      const d = el("details", "aula-fontes");
+      d.innerHTML = `<summary>Fontes e referências (${fontes.length})</summary><ul>${fontes.map((f) => `<li>${f}</li>`).join("")}</ul>`;
+      raiz.appendChild(d);
+    }
+
     const rod = el("div", "aula-rod");
     rod.appendChild(acoes());
     if (window.Reportar) rod.appendChild(window.Reportar.botao({ onde: "aula", materia: ctx.chave, item: ctx.nome }));
+    const imp = el("button", "aula-imp", "Imprimir para revisão");
+    imp.type = "button";
+    imp.title = "Versão para papel ou PDF, com tudo aberto (útil para professores revisarem)";
+    imp.addEventListener("click", () => {
+      // cópia estática da aula, com todos os passos abertos e o gabarito do teste rápido
+      const copia = el("div", "aula aula-impressa");
+      copia.innerHTML = `<h1>${ctx.nome || "Aula"}</h1><p class="aula-meta">Elementar · ${ctx.chave} · versão para revisão</p>`;
+      for (const n of raiz.children) if (!n.classList.contains("aula-rod") && !n.classList.contains("aula-ind")) copia.appendChild(n.cloneNode(true));
+      copia.querySelectorAll(".oculto").forEach((x) => x.classList.remove("oculto"));
+      copia.querySelectorAll("[hidden]").forEach((x) => { x.hidden = false; });
+      copia.querySelectorAll("details").forEach((x) => { x.open = true; });
+      copia.querySelectorAll(".linha-bt, .aula-placar").forEach((x) => x.remove());
+      copia.querySelectorAll(".aula-q").forEach((q, i) => {
+        const t = A.teste[i];
+        if (!t) return;
+        q.querySelectorAll(".ex-op").forEach((x, j) => x.classList.toggle("certa", j === t.certa));
+        const exp = q.querySelector(".aula-exp");
+        if (exp) { exp.className = "aula-exp ok"; exp.innerHTML = `<b>Gabarito: ${"ABCDE"[t.certa]}.</b> ${t.explica || ""}`; }
+      });
+      document.body.appendChild(copia);
+      document.body.classList.add("imprimindo-aula");
+      if (window.Obs) window.Obs.evento("aula.imprimir", { aula: ctx.chave });
+      const limpar = () => { copia.remove(); document.body.classList.remove("imprimindo-aula"); removeEventListener("afterprint", limpar); };
+      addEventListener("afterprint", limpar);
+      window.print();
+      setTimeout(limpar, 1000);
+    });
+    rod.appendChild(imp);
     const sobe = el("button", "aula-sobe", `${IC.subir}<span>Voltar ao início da aula</span>`);
     sobe.type = "button";
     sobe.addEventListener("click", () => topo.scrollIntoView({ behavior: "smooth", block: "start" }));
