@@ -112,12 +112,10 @@ Nada sai do navegador até um serviço ser configurado em `js/config.js`:
 
 | Serviço | O que preencher | Observação |
 | --- | --- | --- |
-| **OpenTelemetry** | `otlp.endpoint` (ex.: `https://otel.seu-dominio.com`) | OTLP/HTTP em JSON para `/v1/traces`, `/v1/logs` e `/v1/metrics`; o coletor precisa aceitar CORS. Do coletor dá para encaminhar para Datadog, New Relic, Grafana etc. |
+| **OpenTelemetry** | `otlp.endpoint` (ex.: `https://otel.seu-dominio.com`) | OTLP/HTTP em JSON para `/v1/traces`, `/v1/logs` e `/v1/metrics`; o coletor precisa aceitar CORS. Do coletor dá para encaminhar para qualquer ferramenta (Grafana, Honeycomb, Datadog etc.). |
 | **Sentry** | `sentry.dsn` | erros com pilha e trilha das ações anteriores |
-| **Datadog RUM** | `datadog.clientToken`, `datadog.applicationId`, `datadog.site` | sessões, erros e ações |
-| **New Relic Browser** | `newrelic.accountID`, `trustKey`, `agentID`, `licenseKey`, `applicationID` | erros e page actions |
 
-São chaves públicas de navegador (aparecem no site de qualquer jeito); nunca coloque tokens secretos no código. O SDK de cada serviço só é baixado se ele estiver configurado, e o endereço de cada SDK pode ser trocado (`sdk`). Para ver os dados no console durante o desenvolvimento, abra o site com `?obs=debug`.
+O DSN é uma chave pública de navegador (aparecem no site de qualquer jeito); nunca coloque tokens secretos no código. O SDK do Sentry só é baixado se ele estiver configurado, e o endereço pode ser trocado (`sdk`). Para ver os dados no console durante o desenvolvimento, abra o site com `?obs=debug`.
 
 ## Arquivos
 
@@ -127,7 +125,7 @@ São chaves públicas de navegador (aparecem no site de qualquer jeito); nunca c
 | `style.css` | Identidade visual (tokens) e layout responsivo |
 | `js/app.js` | Tabela, modos, ficha, modelo atômico, guia e carregamento sob demanda |
 | `js/movimento.js` | Animações comuns (entrar, sair, esqueleto, progresso, lazy) seguindo a skill design-motion-principles |
-| `js/obs.js`, `js/config.js` | Observabilidade (OpenTelemetry, Sentry, Datadog, New Relic) e sua configuração |
+| `js/obs.js`, `js/config.js` | Observabilidade (OpenTelemetry e Sentry) e sua configuração |
 | `tests/` | Testes unitários, de integração e de arquitetura (Vitest) e end-to-end (Playwright) |
 | `js/dados.js` | Dados físicos dos elementos ([Periodic-Table-JSON](https://github.com/Bowserinator/Periodic-Table-JSON), CC BY-SA 3.0) |
 | `js/descricoes.js` | Textos em português de cada elemento |

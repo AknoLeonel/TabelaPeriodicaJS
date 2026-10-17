@@ -79,7 +79,7 @@ Seguimos a skill [design-motion-principles](https://github.com/kylezantos/design
 ## 7. Observabilidade
 
 - Use `window.Obs` (`span`, `evento`, `metrica`, `erro`) em carregamentos, ações importantes e falhas. **Nunca envie dados pessoais** (nada de nomes, e-mails, respostas digitadas livremente).
-- Os serviços (OpenTelemetry/OTLP, Sentry, Datadog RUM, New Relic) são ligados em `js/config.js`; sem configuração nada sai do navegador. Só chaves públicas de navegador vão para o código; tokens secretos nunca.
+- Os serviços (OpenTelemetry/OTLP e Sentry) são ligados em `js/config.js`; sem configuração nada sai do navegador. Só chaves públicas de navegador vão para o código; tokens secretos nunca. Para levar os dados a outra ferramenta, encaminhe pelo coletor OpenTelemetry em vez de acrescentar outro SDK.
 
 ## 8. Antes de abrir o PR (checklist)
 
